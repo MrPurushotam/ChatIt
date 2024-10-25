@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  username      String    @unique
+  displayName   String
+  profile       String?
+  about         String    @default("Hi I am new here")
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastOnline    DateTime  @default(now())
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  chatsAsUser1  Chat[]    @relation("User1Chats")
+  chatsAsUser2  Chat[]    @relation("User2Chats")
+}
+
+model Chat {
+  id            String    @id @default(uuid())
+  user1Id       String
+  user2Id       String
+  lastMessage   String?
+  lastMessageAt DateTime?
+  lastMessageSenderId     String?   
+  unreadCount   Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user1         User      @relation("User1Chats", fields: [user1Id], references: [id])
+  user2         User      @relation("User2Chats", fields: [user2Id], references: [id])
+  messages      Message[]
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  chatId      String
+  senderId    String
+  receiverId  String
+  content     String
+  sentAt      DateTime    @default(now())
+  status      MessageStatus @default(SENT)
+  chat        Chat        @relation(fields: [chatId], references: [id])
+  sender      User        @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User        @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  attachments Attachment[]
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  messageId  String
+  fileUrl    String
+  fileName   String
+  fileType   String
+  fileSize   Int
+  uploadedAt DateTime @default(now())
+  message    Message  @relation(fields: [messageId], references: [id])
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}

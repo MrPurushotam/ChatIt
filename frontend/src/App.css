@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.spinner-container {
+    width: 3.25em;
+    height: 3.25em;
+  }
+  
+  .spinner {
+    width: 100%;
+    height: 100%;
+    transform-origin: center;
+    animation: rotate 2s linear infinite;
+  }
+  
+  .spinner-circle {
+    fill: none;
+    stroke: #3189fc ;
+    stroke-width: 4;
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 200;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 89, 200;
+      stroke-dashoffset: -35px;
+    }
+    100% {
+      stroke-dasharray: 89, 200;
+      stroke-dashoffset: -124px;
+    }
+  }
+
+  @keyframes spin-once {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+/* atoms animation */
+.custom-cursor {
+  pointer-events: none;
+  position: fixed;
+  mix-blend-mode: difference;
+  z-index: 9999;
+}
+
+.atom-orbit {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: rotate 8s linear infinite;
+}
+
+.electron {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: orbit 2s linear infinite;
+}
+
+.electron-red { background-color: #ff4136; }
+.electron-blue { background-color: #0074d9; }
+.electron-green { background-color: #2ecc40; }
+.electron-yellow { background-color: #ffdc00; }
+
+.electron:nth-child(1) { animation-delay: -1.5s; }
+.electron:nth-child(2) { animation-delay: -1s; }
+.electron:nth-child(3) { animation-delay: -0.5s; }
+.electron:nth-child(4) { animation-delay: 0s; }
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes orbit {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) translateX(20px) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg) translateX(20px) rotate(-360deg);
+  }
+}
+
+.dot {
+  height: 8px;
+  width: 8px;
+  background-color: #ee6145;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.animate-flash {
+  animation: flash 1.2s infinite;
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* Add delay for staggered effect */
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Tailwind class utilities */
+
+@layer utilities{
+  .dropdownlist-item{
+    @apply px-4 py-2 cursor-pointer hover:bg-gray-100 transition-colors border-b-2 select-none;
+  }
+  .file-icon{
+    @apply rounded-full hover:text-[#2196f3] h-10 w-10;
+  }
+  .profile-edit-icon{
+    @apply text-xl hover:text-[#2196f3] transition-transform transform hover:scale-110 cursor-pointer;
+  }
+  .profile-save-icon{
+    @apply text-xl hover:text-[#ee6145] transition-transform transform hover:scale-110 cursor-pointer
+  }
+}
