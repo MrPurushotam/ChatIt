@@ -1,11 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useCallback } from "react";
-import api from "../utils/Api";
 import { useSetRecoilState } from "recoil";
 import { activeChatAtom } from "../states/atoms";
 import OptionsDropdown from "./OptionsDropdown";
+import initalizeApi from "../utils/Api";
 
 const Searchbar = () => {
+    const api =initalizeApi();
     const [searchUser, setSearchUser] = useState("");
     const [users, setUsers] = useState([]);
     const [debounceTimeout, setDebounceTimeout] = useState(null);

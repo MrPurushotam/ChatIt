@@ -24,7 +24,6 @@ class Mailer {
         };
         try {
             await transporterInstance.sendMail(mailOption);
-            console.log("Verfication code sent.")
             return true;
         } catch (error) {
             console.log("Some error occured while sending verification code.", error);
@@ -41,7 +40,6 @@ class Mailer {
         
         try {
             await transporterInstance.sendMail(mailOption);
-            console.log("Verfication code sent.")
             return true;
         } catch (error) {
             console.log("Some error occured while sending verification code.", error);

@@ -3,10 +3,11 @@ import { activeChatAtom, authenticatedAtom, chatsAtom, disconnectSocketAtom, mes
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import React, { useCallback, useRef, useEffect } from "react";
-import api from "./Api";
+import initalizeApi from "./Api";
 import useLoggedUser from "../Hooks/useLoggedUser";
 
 const SocketWrapper = ({ children }) => {
+  const api = initalizeApi();
   const url = import.meta.env.VITE_SERVER_URL;
   const [chats, setChats] = useRecoilState(chatsAtom);
   const setMessages = useSetRecoilState(messagesAtom);
@@ -23,13 +24,11 @@ const SocketWrapper = ({ children }) => {
 
 
   const fetchChats = async (start = 0, end = 20) => {
-    console.log("Fetching chats")
     setIsConnected('inital-connect');
     setGlobalLoading("fetching-chats");
     try {
       const resp = await api.get(`/chat/${start}/${end}`);
       if (resp.data.success) {
-        console.log(resp.data);
         const allChats = resp.data.chats;
         setChats(allChats);
       } else {
@@ -76,7 +75,6 @@ const SocketWrapper = ({ children }) => {
 
   const handleOnlineChats = (onlineChats) => {
     onlineChatsRef.current = onlineChats;
-    console.log("online chat dfsfd", onlineChatsRef.current);
   };
 
   useEffect(() => {
@@ -97,7 +95,6 @@ const SocketWrapper = ({ children }) => {
   }, [socketRef.current, onlineChatsRef.current])
 
   const handleUserStatus = (userId, isOnline) => {
-    console.log(userId, "Is online? ", isOnline)
     setChats(prev => (
       prev.map(chat => chat.otherUserId === userId ? { ...chat, isOnline } : chat)
     ))
@@ -107,7 +104,6 @@ const SocketWrapper = ({ children }) => {
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current?.on("error", (error) => {
-      console.error("Socket connection error:", err.message);
       if (error.message === "JwtTokenExpired") {
         document.cookie = `authenticate=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`
         setAuthenticated(false)
@@ -138,7 +134,6 @@ const SocketWrapper = ({ children }) => {
         )
       );
       if (currentTextingUser && currentTextingUser.id === newMessage.chatId && currentTextingUser.otherUserId === newMessage.senderId) {
-        console.log("inside inside ")
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     });

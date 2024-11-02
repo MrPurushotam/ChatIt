@@ -29,7 +29,6 @@ async function handleUserSession(io, socket, ConnectedUsers) {
         });
         const onlineUsers = UserChatList.filter(contactId => ConnectedUsers.has(contactId))
         socket.emit('online_contacts', onlineUsers);
-        console.log("Emited online_contacts", onlineUsers)
     } catch (error) {
         console.log("Error occured while connecting ", error.message)
     }

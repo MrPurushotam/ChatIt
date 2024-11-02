@@ -2,15 +2,19 @@
 import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
 import SigninPage from './pages/Signin';
 import { useRecoilState, useSetRecoilState } from "recoil";
 import SocketWrapper from './utils/socketHandler';
 import { authenticatedAtom, isUserConnectedToInternetAtom } from './states/atoms';
-import { useEffect, useRef } from 'react';
-import VerifyEmail from './pages/VerifyEmail';
-import UpdateProfileOnce from './components/UpdateProfileOnce';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { ProtectedRoute, UnProtectedRoute, UnVerifiedRoute, VerifiedRoute } from './components/Outlets';
+import Loader from './components/Loader';
+
+// dynamic Routes
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const UpdateProfileOnce = lazy(() => import('./components/UpdateProfileOnce'));
+
 
 const WorkerScript = () => new Worker(new URL('./WebWorkers/Worker-1.js', import.meta.url));
 
@@ -65,7 +69,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="w-full h-[100vh] ">
+      <div className="w-full h-[100vh]">
         {
           isInitialRender.current && !isConnectedToInternet &&
           <div className='z-20 absolute bg-white w-full h-full flex justify-center items-center flex-col space-y-2' role="alert">
@@ -75,27 +79,29 @@ function App() {
             </div>
           </div>
         }
-        <Routes>
-          <Route index path="/" element={<Home />} />
-          <Route element={<UnProtectedRoute />}>
-            <Route path="/signin" element={<SigninPage />} />
-          </Route>
-          <Route element={<ProtectedRoute />}>
-
-            <Route element={<VerifiedRoute />}>
-              <Route path="/dashboard" element={
-                <SocketWrapper>
-                  <Dashboard />
-                </SocketWrapper>
-              } />
+        <Suspense fallback={<Loader />}>
+          <Routes>
+            <Route index path="/" element={<Home />} />
+            <Route element={<UnProtectedRoute />}>
+              <Route path="/signin" element={<SigninPage />} />
             </Route>
-            <Route element={<UnVerifiedRoute />}>
-              <Route path="/verify/:email?" element={<VerifyEmail />} />
-              <Route path="/profile" element={<UpdateProfileOnce />} />
-            </Route>
+            <Route element={<ProtectedRoute />}>
 
-          </Route>
-        </Routes>
+              <Route element={<VerifiedRoute />}>
+                <Route path="/dashboard" element={
+                  <SocketWrapper>
+                    <Dashboard />
+                  </SocketWrapper>
+                } />
+              </Route>
+              <Route element={<UnVerifiedRoute />}>
+                <Route path="/verify/:email?" element={<VerifyEmail />} />
+                <Route path="/profile" element={<UpdateProfileOnce />} />
+              </Route>
+
+            </Route>
+          </Routes>
+        </Suspense>
       </div>
     </BrowserRouter>
   )

@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import useLoggedUser from '../Hooks/useLoggedUser';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/Api';
+import initalizeApi from '../utils/Api';
 import { fetchUserDetailSelector} from '../states/atoms';
 import { useRecoilRefresher_UNSTABLE} from 'recoil';
 
 const UpdateProfileOnce = () => {
+    const api = initalizeApi();
     const loggedUser = useLoggedUser();
     const [profile, setProfile] = useState("");
     const [tempFile, setTempFile] = useState("");

@@ -23,7 +23,6 @@ const OptionsDropdown = () => {
     }, [setDropDownItem]);
 
     const handleLogout = () => {
-        console.log("Logout hitt")
         setGlobalLoading("logout")
         setDisconnectSocket(true)
         logout();

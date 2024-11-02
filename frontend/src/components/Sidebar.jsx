@@ -30,7 +30,6 @@ const Sidebar = () => {
     }, [chats, listChats])
 
     const handleChatClick = (id) => {
-        console.log("clicked")
         const selectedChat = chats.find(chat => chat.id === id);
         setCurrentTextingUser(selectedChat);
     }

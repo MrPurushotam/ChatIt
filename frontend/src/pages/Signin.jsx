@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import api from "../utils/Api";
+import initalizeApi from "../utils/Api";
 import { useSetRecoilState } from 'recoil';
 import { authenticatedAtom } from '../states/atoms';
 
 const SigninPage = () => {
+    const api =initalizeApi();
     const navigate = useNavigate();
     const [formdata, setFormdata] = useState({ email: "", password: "", username: "" });
     const [signup, setSignup] = useState(false);
@@ -149,7 +150,6 @@ const SigninPage = () => {
         const value = e.target.value;
         if (/^\d*$/.test(value) && value.length <= 6) {
             setFormdata(prev=>({...prev,code:value}));
-            console.log("works")
         }
     };
 

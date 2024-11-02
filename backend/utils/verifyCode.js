@@ -17,7 +17,6 @@ function storeForgotPasswordCode(map,email, code, expiryTime = 150000) {
 
 function validateVerificationCode(map, email, code) {
     const data = map.get(email);
-    console.log(data);
     if (!data) {
         return { success: false, message: "Verification code has expired or not generated." };
     }

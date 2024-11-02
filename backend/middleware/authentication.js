@@ -16,7 +16,6 @@ function authenticate(req,res,next){
     }
     
     if(!data.success && data.jwtExpire){
-        console.log("Inside test block")
         res.clearCookie("token")
         res.clearCookie("authenticate")
         return res.status(401).json({message:"Jwt Expired",success:false})

@@ -13,9 +13,10 @@ import {
     viewImageAtom,
     fetchUserDetailSelector,
 } from '../states/atoms';
-import api from '../utils/Api';
+import initalizeApi from '../utils/Api';
 
 export const useLogout = () => {
+    const api =initalizeApi();
     const navigate = useNavigate();
     const resetSocket = useResetRecoilState(socketAtom);
     const resetActiveChat = useResetRecoilState(activeChatAtom);

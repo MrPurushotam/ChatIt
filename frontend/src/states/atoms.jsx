@@ -1,5 +1,5 @@
 import { atom, selector } from "recoil";
-import api from "../utils/Api";
+import initalizeApi from "../utils/Api";
 
 export const socketAtom = atom({
     key: "socket",
@@ -45,6 +45,7 @@ export const fetchUserDetailSelector= selector({
     key:"FetchUserDetail",
     get:async({get})=>{
         const isAuthenticated= get(authenticatedAtom);
+        const api =initalizeApi();
         if(!isAuthenticated) return null;
         try {
             const resp = await api.get("/user/");

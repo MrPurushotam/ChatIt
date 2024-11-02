@@ -6,7 +6,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const InviteUser = () => {
     const inviteLink = window.location.href.split("dashboard")[0]+"signin";
-    console.log(inviteLink)
     const [copied, setCopied] = useState(false);
     const setSelectedDropdownItem = useSetRecoilState(selectedDropDownItemAtom);
     const customMessage = import.meta.env.VITE_INVITE_MESSAGE || "Hey there! 🎉 Come join me on ChatIt, where every chat is a chance to spark joy and fun! Let’s create some unforgettable memories together!";

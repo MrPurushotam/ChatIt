@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from "../utils/Api";
+import initalizeApi from "../utils/Api";
 import { useLogout } from '../Hooks/useLogout';
 
 const VerifyEmail = () => {
+    const api =initalizeApi();
     const params = useParams();
     const navigate = useNavigate();
     const [email, setEmail] = useState(params.email || "");

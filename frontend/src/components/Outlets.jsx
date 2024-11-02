@@ -33,7 +33,7 @@ export const UnVerifiedRoute=()=>{
   },[user])
 
   if (loading) {
-    return 
+    return null;
     <div className="p-10">
       Please Wait its loading.
       <Loader className="flex h-full w-full absolute items-center justify-center bg-[#ee6145]/30"/>;
@@ -57,7 +57,7 @@ export const VerifiedRoute = () => {
   },[user])
 
   if (loading) {
-    return 
+    return null;
     <div className="p-10">
       Please Wait its loading.
       <Loader className="flex h-full w-full absolute items-center justify-center bg-[#ee6145]/30"/>;

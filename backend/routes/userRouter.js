@@ -45,7 +45,6 @@ router.post('/signup', async (req, res) => {
     try {
         const { email, password } = req.body;
         const username = (req.body.username[0].toUpperCase() + req.body.username.substring(1).toLowerCase());
-        console.log(req.body)
         if (!email?.trim() || !password?.trim() || !username?.trim()) {
             return res.status(400).json({ message: "Invalid data sent.", success: false });
         }
@@ -152,7 +151,6 @@ router.use(authenticate)
 router.get("/logout", (req, res) => {
     res.clearCookie("token")
     res.clearCookie("authenticate")
-    console.log("cleared cookies")
     res.status(200).json({ message: "Logged out.", success: true })
 })
 
@@ -328,7 +326,6 @@ router.get("/search/:query?", async (req, res) => {
 
 router.post("/profile", ProfileUpload, async (req, res) => {
     try {
-        console.log("Hit")
         const { displayName, about } = req.body;
         if (!req.file && !displayName && !about) {
             return res.status(400).json({ message: "Fileds can't be empty.", success: false });
@@ -379,7 +376,6 @@ router.post("/verify",OtpLimit, async (req, res) => {
 router.post("/verifyemail", async (req, res) => {
     try {
         const { email, code } = req.body
-        console.log(req.body)
         if (!email) {
             return res.status(400).json({ message: "Email can't be empty.", success: false })
         }

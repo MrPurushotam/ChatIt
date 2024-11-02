@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { activeChatAtom, attachmentAtom, chatsAtom, globalLoadingAtom, messagesAtom, viewImageAtom } from "../states/atoms"
 import { useRecoilState, useSetRecoilState } from "recoil"
 import SingleMessageUi from "./SingleMessageUi"
-import api from "../utils/Api"
+import initalizeApi from "../utils/Api"
 import useDebounce from "../Hooks/useDebounce";
 import ChatMessageArea from "./ChatMessageArea"
 import AttachmentPreview from "./AttachmentPreview"
@@ -10,6 +10,7 @@ import Loader from "./Loader";
 import InfiniteScroll from 'react-infinite-scroller';
 
 const ChatInterface = ({ socket, loggedUser }) => {
+    const api = initalizeApi();
     const [message, setMessage] = useState("")
     const [messages, setMessages] = useRecoilState(messagesAtom)
     const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);

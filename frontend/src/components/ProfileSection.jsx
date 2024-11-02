@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { fetchUserDetailSelector, globalLoadingAtom, selectedDropDownItemAtom, viewImageAtom } from '../states/atoms';
 import { useRecoilRefresher_UNSTABLE, useRecoilState, useSetRecoilState } from 'recoil';
 import useLoggedUser from '../Hooks/useLoggedUser';
-import api from '../utils/Api';
+import initalizeApi from '../utils/Api';
 import Loader from './Loader';
 
 const ProfileSection = () => {
+    const api =initalizeApi();
     const setSelectedDropdownItem = useSetRecoilState(selectedDropDownItemAtom);
     const setViewImage = useSetRecoilState(viewImageAtom);
     const refreshFetchUserSelctor = useRecoilRefresher_UNSTABLE(fetchUserDetailSelector)
