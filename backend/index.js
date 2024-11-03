@@ -9,7 +9,7 @@ require("dotenv").config();
 const app= express()
 
 const corsConfig= {
-    origin: ["http://localhost:5173",process.env.FRONTEND_URL.split(",")], 
+    origin: process.env.FRONTEND_URL.split(","), 
     credentials: true,
     methods: '*'
 }
