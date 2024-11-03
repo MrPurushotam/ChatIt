@@ -9,9 +9,9 @@ require("dotenv").config();
 const app= express()
 
 const corsConfig= {
-    origin: process.env.FRONTEND_URL.split(","), 
+    origin: process.env.FRONTEND_URL.split(",").filter(Boolean), 
     credentials: true,
-    methods: '*'
+    methods:  ['GET', 'POST', 'PUT', 'DELETE']
 }
 
 app.use(cors(corsConfig));
