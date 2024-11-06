@@ -32,8 +32,8 @@ router.post('/login',loginLimit, async (req, res) => {
             return res.status(400).json({ message: "Incorrect passowrd.", success: false })
         }
         const token = createToken({ id: user.id, username: user.username, displayName: user.displayName, profile: user.profile, about: user.about , isVerified:user.isVerified })
-        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 })
-        res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000})
+        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
+        res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
         res.status(200).json({ message: "Logged in.", success: true })
     } catch (error) {
         console.log("Error ", error.message)
@@ -71,8 +71,8 @@ router.post('/signup', async (req, res) => {
             }
         });
         const token = createToken({ id: newUser.id, username: newUser.username, displayName: newUser.displayName, profile: newUser.profile, about: newUser.about ,isVerified:newUser.isVerified})
-        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 })
-        res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000})
+        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
+        res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
         // Create verification token
         const verificationCode = crypto.randomInt(Math.pow(10, 6 - 1), Math.pow(10, 6));
         storeVerificationCode(verificationCodeMap, email, verificationCode);
