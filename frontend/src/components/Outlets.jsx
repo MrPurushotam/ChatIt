@@ -6,18 +6,18 @@ import { loggedUserAtom } from "../states/atoms";
 import Loader from "./Loader";
 
 export const ProtectedRoute = () => {
-  let cookieExists = document.cookie.includes("authenticate")
+  let tokenExists = window.localStorage.getItem('token');
   return (
     <>
-      {cookieExists ? <Outlet /> : <Navigate to="/signin" />}
+      {tokenExists ? <Outlet /> : <Navigate to="/signin" />}
     </>
   )
 }
 export const UnProtectedRoute = () => {
-  let cookieExists = document.cookie.includes("authenticate")
+  let tokenExists = window.localStorage.getItem('token');
   return (
     <>
-      {!cookieExists ? <Outlet /> : <Navigate to="/dashboard" />}
+      {!tokenExists ? <Outlet /> : <Navigate to="/dashboard" />}
     </>
   )
 }
@@ -34,10 +34,6 @@ export const UnVerifiedRoute=()=>{
 
   if (loading) {
     return null;
-    <div className="p-10">
-      Please Wait its loading.
-      <Loader className="flex h-full w-full absolute items-center justify-center bg-[#ee6145]/30"/>;
-    </div>
   }
   return (
     <>
@@ -58,10 +54,6 @@ export const VerifiedRoute = () => {
 
   if (loading) {
     return null;
-    <div className="p-10">
-      Please Wait its loading.
-      <Loader className="flex h-full w-full absolute items-center justify-center bg-[#ee6145]/30"/>;
-    </div>
   }
   return (
     <>

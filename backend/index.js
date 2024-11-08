@@ -1,6 +1,6 @@
 const express = require('express');
 const cors=require('cors')
-const cookiesParser= require("cookie-parser")
+// const cookiesParser= require("cookie-parser")
 const UserRouter= require("./routes/userRouter");
 const ChatRouter= require("./routes/ChatRouter");
 const MessageRouter= require("./routes/MessagesRouter");
@@ -9,13 +9,21 @@ require("dotenv").config();
 const app= express()
 
 const corsConfig= {
-    origin: process.env.FRONTEND_URL.split(",").filter(Boolean), 
+    origin:(origin,callback)=>{
+        const allowedOrigin = process.env.FRONTEND_URL.split(",").filter(Boolean);
+        if(!origin || allowedOrigin.includes(origin)){
+            callback(null,true);
+        }else{
+            callback(new Error("Cors Error origin not allowed."))
+        }
+    },
     credentials: true,
-    methods:  ['GET', 'POST', 'PUT', 'DELETE']
+    methods:  ['GET', 'POST', 'PUT', 'DELETE','OPTION'],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }
 
 app.use(cors(corsConfig));
-app.use(cookiesParser())
+// app.use(cookiesParser())
 app.use(express.json())
 app.use(GenerousLimit);
 

@@ -12,5 +12,5 @@ initalizeSocket(server)
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT,hostip,()=>{
-    console.log("Server running on localhost:3000 or "+`${hostip}`)
+    console.log(`Server running on localhost:${PORT} or ${hostip}`)
 })

@@ -44,7 +44,9 @@ const SocketWrapper = ({ children }) => {
 
 
   const ConnectToServer = useCallback(() => {
-    const socket_connection = io(url, { withCredentials: true });
+    // const socket_connection = io(url, { withCredentials: true });
+    // Authorization Header
+    const socket_connection = io(url, { extraHeaders:{Authorization:`Bearer ${window.localStorage.getItem("token")}`} });
     socketRef.current = socket_connection;
     socket_connection.on('connect', () => {
       console.log("connected")
@@ -105,7 +107,6 @@ const SocketWrapper = ({ children }) => {
     if (!socketRef.current) return;
     socketRef.current?.on("error", (error) => {
       if (error.message === "JwtTokenExpired") {
-        document.cookie = `authenticate=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`
         setAuthenticated(false)
         navigate("/signin")
       } else {

@@ -1,42 +1,39 @@
 
-const cookie=require("cookie")
+// const cookie = require("cookie")
 const { verifyToken } = require('../utils/constant');
 const prisma = require("../utils/PrismaInit");
 
 function SocketIdMiddleware(socket, next) {
 
     try {
-        const cookies = socket.handshake.headers.cookie
-        if (!cookies) {
-            return next(new Error("Authentication Error"))
+        const authHeader = socket.handshake.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return next(new Error("Authentication Error"));
         }
-        const parsedCookie = cookie.parse(cookies)
-        const authToken = parsedCookie.token
-
-        if (!authToken) {
-            return next(new Error("Authentication Error"))
+        const token = authHeader.split("Bearer ")[1];
+        if (!token) {
+            return next(new Error("Authentication Error"));
         }
-        const data = verifyToken(authToken)
+        const data = verifyToken(token);
         if (data.success) {
             socket.username = data.data.username
             socket.userId = data.data.id
             socket.displayName = data.data.displayName
             socket.profile = data.data.profile
-            socket.about= data.data.about
+            socket.about = data.data.about
             return next()
         }
-        if(!data.success && data.jwtExpire){
+        if (!data.success && data.jwtExpire) {
             return next(new Error("JwtTokenExpired"))
         }
         return next(new Error("Authentication Error"))
-
     } catch (error) {
         console.log("Error :", error.message)
         return next(new Error("Internal Error occured."))
     }
 }
 
-const createChatIdOrGetChatId=async(socket,data)=>{
+const createChatIdOrGetChatId = async (socket, data) => {
     const { receiverId } = data;
     const senderId = socket.userId;
     let { chatId } = data;
@@ -60,9 +57,9 @@ const createChatIdOrGetChatId=async(socket,data)=>{
                     ]
                 }
             });
-            if(existingChat){
-                data.chatId=existingChat.id;
-            }else {
+            if (existingChat) {
+                data.chatId = existingChat.id;
+            } else {
                 const newChat = await prisma.chat.create({
                     data: {
                         user1Id: senderId,
@@ -70,7 +67,7 @@ const createChatIdOrGetChatId=async(socket,data)=>{
                     }
                 });
                 data.chatId = newChat.id;
-                socket.emit("created-chatId",  newChat.id);
+                socket.emit("created-chatId", newChat.id);
             }
         }
     } catch (error) {
@@ -80,5 +77,5 @@ const createChatIdOrGetChatId=async(socket,data)=>{
 }
 
 
-module.exports = { SocketIdMiddleware ,createChatIdOrGetChatId }
+module.exports = { SocketIdMiddleware, createChatIdOrGetChatId }
 

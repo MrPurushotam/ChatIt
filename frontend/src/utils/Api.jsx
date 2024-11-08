@@ -9,10 +9,21 @@ const initalizeApi=()=>{
     if(!instance){
         instance = axios.create({
             baseURL: `${import.meta.env.VITE_SERVER_URL}/api/v1/`,
-            withCredentials: true,
         });
+        instance.interceptors.request.use(
+            config=>{
+                const token = window.localStorage.getItem("token");
+                if(token){
+                    config.headers['Authorization']=`Bearer ${token}`;
+                }
+                return config;
+            },
+            (error)=>{
+                return Promise.reject(error);
+            }
+        )
     }
-    return instance
+    return instance;
 }
 
 

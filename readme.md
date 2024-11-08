@@ -25,7 +25,7 @@ Feature:
 -Ratelimiting on backend 
 -Responsive Ui 
 -Message Read recipt
--Jwt, Cookie based authentication
+-Jwt based authorization header auth
 
 
 Technologies
@@ -35,6 +35,7 @@ Technologies
 -Socket.io 
 -Prisma Orm
 -Postgres database
--Cloudflare R2 bucket ,EC2 instatnce 
+-Cloudflare R2 bucket
+-Aws EC2 
 -Recoil state management
 -Worker Threads

@@ -113,6 +113,7 @@ const SigninPage = () => {
 
             if (resp.data.success) {
                 setAuthenticated(true);
+                window.localStorage.setItem("token",resp.data.token);
                 if (signup) {
                     navigate(`/verify/${formdata.email}`);
                 } else {

@@ -32,9 +32,9 @@ router.post('/login',loginLimit, async (req, res) => {
             return res.status(400).json({ message: "Incorrect passowrd.", success: false })
         }
         const token = createToken({ id: user.id, username: user.username, displayName: user.displayName, profile: user.profile, about: user.about , isVerified:user.isVerified })
-        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
-        res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
-        res.status(200).json({ message: "Logged in.", success: true })
+        // res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
+        // res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
+        res.status(200).json({ message: "Logged in.", success: true ,token})
     } catch (error) {
         console.log("Error ", error.message)
         return res.status(500).json({ message: "Internal error occured.", success: false })
@@ -71,8 +71,8 @@ router.post('/signup', async (req, res) => {
             }
         });
         const token = createToken({ id: newUser.id, username: newUser.username, displayName: newUser.displayName, profile: newUser.profile, about: newUser.about ,isVerified:newUser.isVerified})
-        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
-        res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
+        // res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
+        // res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
         // Create verification token
         const verificationCode = crypto.randomInt(Math.pow(10, 6 - 1), Math.pow(10, 6));
         storeVerificationCode(verificationCodeMap, email, verificationCode);
@@ -84,7 +84,7 @@ router.post('/signup', async (req, res) => {
             additionalResponseObject.emailError=true;
             additionalResponseObject.emailErrorMessage="Some error occured while sending email.";
         }
-        res.status(200).json({ message: "User created.", success: true ,...additionalResponseObject})
+        res.status(200).json({ message: "User created.", success: true ,...additionalResponseObject,token })
     } catch (error) {
         console.log("Error ", error.message)
         return res.status(500).json({ message: "Internal error occured.", success: false })
@@ -158,8 +158,8 @@ router.post('/verifypassword', async (req, res) => {
 router.use(authenticate)
 
 router.get("/logout", (req, res) => {
-    res.clearCookie("token")
-    res.clearCookie("authenticate")
+    // res.clearCookie("token")
+    // res.clearCookie("authenticate")
     res.status(200).json({ message: "Logged out.", success: true })
 })
 

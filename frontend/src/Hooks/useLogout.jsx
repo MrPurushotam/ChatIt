@@ -14,7 +14,7 @@ import {
     fetchUserDetailSelector,
 } from '../states/atoms';
 import initalizeApi from '../utils/Api';
-
+// FIXME: We don't really need this backend call to logout user afterall we ain't using cookie based authentication.
 export const useLogout = () => {
     const api =initalizeApi();
     const navigate = useNavigate();
@@ -43,6 +43,7 @@ export const useLogout = () => {
                 resetViewImage();
                 resetLoggedUser();
                 resetFetchUserDetailsSelector();
+                window.localStorage.removeItem("token");
                 navigate("/signin");
                 console.log("Logged out successfully");
             } else {

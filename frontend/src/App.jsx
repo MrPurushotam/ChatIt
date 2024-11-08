@@ -25,15 +25,9 @@ function App() {
   const isInitialRender = useRef(true);
 
   const setAuthenticated = useSetRecoilState(authenticatedAtom);
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
-  };
 
   useEffect(() => {
-    const authToken = getCookie('authenticate');
+    const authToken = window.localStorage.getItem("token");
     setAuthenticated(authToken ? true : false);
   }, [setAuthenticated])
 

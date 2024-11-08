@@ -1,16 +1,23 @@
 const { Server } = require("socket.io")
 const { SocketIdMiddleware, createChatIdOrGetChatId } = require("../middleware/SocketMiddleware");
 const { handleUserSession, handleMessage, handleMessagesRead, disconnectUser, handleTypingIndicator, handleStopTypingIndicator, handleFileMessage } = require("./SocketFunction");
-const { socketFileUpload } = require("../middleware/multer");
-
+require("dotenv").config();
 const ConnectedUser = new Map()
 
 const initalizeSocket = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: process.env.FRONTEND_URL || "http://localhost:5173",
-            methods: '*',
-            credentials: true
+            origin: (origin,callback)=>{
+                const allowedOrigin = process.env.FRONTEND_URL.split(",").filter(Boolean);
+                if(!origin || allowedOrigin.includes(origin)){
+                    callback(null,true);
+                }else{
+                    callback(new Error("Cors Error origin not allowed."))
+                }
+            },
+            methods: ['GET', 'POST', 'PUT', 'DELETE','OPTION'],
+            allowedHeaders: ["Content-Type", "Authorization"],
+            credentials: true        
         }
     });
 

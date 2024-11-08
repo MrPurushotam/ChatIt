@@ -1,11 +1,12 @@
 const {verifyToken}= require("../utils/constant")
 
 function authenticate(req,res,next){
-    const cookieAuthToken=req.cookies.token
-    if(!cookieAuthToken){
-        return res.status(401).json({message:'User Unauthorized.',success:false})
+    const authHeader= req.headers["authorization"];
+    if(!authHeader){
+        return res.status(401).json({error:'User Unauthorized.No Bearer token found.',success:false})
     }
-    const data=verifyToken(cookieAuthToken)
+    const token = authHeader.split("Bearer ")[1]
+    const data = verifyToken(token);
     if(data.success){
         req.userId=data.data.id
         req.username=data.data.username
@@ -16,11 +17,10 @@ function authenticate(req,res,next){
     }
     
     if(!data.success && data.jwtExpire){
-        res.clearCookie("token")
-        res.clearCookie("authenticate")
-        return res.status(401).json({message:"Jwt Expired",success:false})
+        console.log("JWT Expired")
+        return res.status(400).json({error:"Jwt Expired",success:false})
     }
-    return res.status(400).json({message:"Session expired.",success:false})
+    return res.status(400).json({error:"Session expired.",success:false})
 }
 
 module.exports=authenticate
