@@ -360,7 +360,7 @@ const ChatInterface = ({ socket, loggedUser }) => {
                         {
                             currentTextingUser.otherUserProfile ?
                                 <img
-                                    src={sanitizeUrl(currentTextingUser.otherUserProfile)}
+                                    src={currentTextingUser.otherUserProfile}
                                     alt="Profile"
                                     className='h-full w-full object-cover rounded-full cursor-pointer'
                                     onClick={() => setViewImage(currentTextingUser.otherUserProfile)}

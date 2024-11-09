@@ -59,7 +59,7 @@ const ProfileUpload = (req, res, next) => {
       next();
     });
   } catch (error) {
-    console.error('Unexpected error during file upload:', e);
+    console.error('Unexpected error during file upload:', error);
     res.status(500).json({ error: 'An unexpected error occurred during file upload.', details: e.message });
   }
 };  

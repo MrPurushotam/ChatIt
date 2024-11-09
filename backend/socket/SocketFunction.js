@@ -121,7 +121,7 @@ const handleFileMessage = async (io, socket, ConnectedUser, data, callback) => {
                         fileUrl: file.fileUrl,
                         fileName: file.fileName,
                         fileType: file.fileType,
-                        fileSize: file.fileSize
+                        fileSize: file.fileSizee
                     }))
                 }
             },

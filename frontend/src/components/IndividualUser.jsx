@@ -14,7 +14,7 @@ const IndividualUser = ({ isActive = true, chatDetail, onClick, loggedUser }) =>
         {
           chatDetail.otherUserProfile ?
             (<img
-              src={sanitizeUrl(chatDetail.otherUserProfile)}
+              src={chatDetail.otherUserProfile}
               alt="Profile"
               className='h-full w-full object-cover rounded-full cursor-pointer'
             />)

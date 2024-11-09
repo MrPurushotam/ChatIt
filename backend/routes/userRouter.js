@@ -342,7 +342,7 @@ router.post("/profile", ProfileUpload, async (req, res) => {
         const updatedData = {};
         if (displayName) updatedData.displayName = displayName;
         if (about) updatedData.about = about;
-        if (req.file) updatedData.profile = path.join(process.env.R2_SUBDOMAIN + req.file.key);
+        if (req.file) updatedData.profile = process.env.R2_SUBDOMAIN + req.file.key;
 
         await prisma.user.update({
             where: { id: req.userId },
