@@ -8,6 +8,7 @@ import ChatMessageArea from "./ChatMessageArea"
 import AttachmentPreview from "./AttachmentPreview"
 import Loader from "./Loader";
 import InfiniteScroll from 'react-infinite-scroller';
+import ProgressiveImage from "react-progressive-image"
 
 const ChatInterface = ({ socket, loggedUser }) => {
     const api = initalizeApi();
@@ -176,7 +177,7 @@ const ChatInterface = ({ socket, loggedUser }) => {
 
                     if (resp.data.messages.length === count) {
                         fetchMessageCounter.current += count;
-                        setHasMore(true);  
+                        setHasMore(true);
                     } else {
                         setHasMore(false);
                     }
@@ -359,12 +360,17 @@ const ChatInterface = ({ socket, loggedUser }) => {
                     <div className='w-12 h-12 sm:w-14 sm:h-14  flex rounded-full overflow-hidden object-contain items-center justify-center bg-transparent p-1'>
                         {
                             currentTextingUser.otherUserProfile ?
-                                <img
-                                    src={currentTextingUser.otherUserProfile}
-                                    alt="Profile"
-                                    className='h-full w-full object-cover rounded-full cursor-pointer'
-                                    onClick={() => setViewImage(currentTextingUser.otherUserProfile)}
-                                />
+                                <ProgressiveImage src={chatDetail.otherUserProfile} placeholder="https://assets-v2.lottiefiles.com/a/04b5804a-1161-11ee-b72d-2fca51545fab/sWU9zH0HSi.gif">
+                                    {(src, loading) => (
+                                        <img
+                                            src={src}
+                                            alt="Profile"
+                                            className={`h-full w-full object-cover rounded-full cursor-pointer ${loading ? "blur-sm" : "blur-0"}`}
+                                            onClick={() => setViewImage(currentTextingUser.otherUserProfile)}
+                                        />
+                                    )}
+                                </ProgressiveImage>
+
                                 :
                                 <i className="ph-duotone ph-user text-4xl"></i>
                         }

@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { fetchUserDetailSelector, globalLoadingAtom, selectedDropDownItemAtom, viewImageAtom } from '../states/atoms';
 import { useRecoilRefresher_UNSTABLE, useRecoilState, useSetRecoilState } from 'recoil';
 import useLoggedUser from '../Hooks/useLoggedUser';
 import initalizeApi from '../utils/Api';
 import Loader from './Loader';
+import ProgressiveImage from 'react-progressive-image';
 
 const ProfileSection = () => {
-    const api =initalizeApi();
+    const api = initalizeApi();
     const setSelectedDropdownItem = useSetRecoilState(selectedDropDownItemAtom);
     const setViewImage = useSetRecoilState(viewImageAtom);
     const refreshFetchUserSelctor = useRecoilRefresher_UNSTABLE(fetchUserDetailSelector)
     const [globalLoading, setGlobalLoading] = useRecoilState(globalLoadingAtom);
     const loggedUser = useLoggedUser();
+    const fileInputRef = useRef(null);
 
     const [name, setName] = useState(loggedUser?.displayName || "");
     const [about, setAbout] = useState(loggedUser?.about || "");
@@ -65,8 +67,9 @@ const ProfileSection = () => {
         const file = event.target.files[0];
         if (file && file.size <= 4 * 1024 * 1024) {
             setProfile(URL.createObjectURL(file));
-                (file);
+            setNewProfileImage(file);
             setEdit("profile");
+            setGlobalLoading("");
         } else {
             alert("file size exceed 4MB");
             event.target.value = '';
@@ -77,6 +80,9 @@ const ProfileSection = () => {
         setProfile(loggedUser?.profile);
         setNewProfileImage(null);
         setEdit("");
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     const handleEdit = (field) => {
@@ -87,7 +93,8 @@ const ProfileSection = () => {
         }
         setEdit(field);
         if (field === "profile") {
-            document.getElementById("editProfileImage").click();
+            setGlobalLoading("newprofile-loading")
+            fileInputRef.current?.click();
         }
     };
 
@@ -95,23 +102,26 @@ const ProfileSection = () => {
         <div className='flex flex-col space-y-6 sm:space-y-8 py-4 sm:py-6'>
             <div className='flex items-center justify-between'>
                 <h1 className='font-bold text-gray-900 text-2xl sm:text-3xl'>Profile</h1>
-                <i className="ph-duotone ph-arrow-fat-line-left text-xl sm:text-2xl hover:text-[#ee6145] 
-            transition-transform transform hover:scale-110 cursor-pointer"
-                    onClick={() => setSelectedDropdownItem(null)}
-                ></i>
+                <i className="ph-duotone ph-arrow-fat-line-left text-xl sm:text-2xl hover:text-[#ee6145] transition-transform transform hover:scale-110 cursor-pointer" onClick={() => setSelectedDropdownItem(null)}></i>
             </div>
 
-            <div className='relative h-32 w-32 sm:h-40 sm:w-40 p-4 sm:p-5 border-2 border-gray-200 
-        rounded-full flex items-center justify-center mx-auto shadow-lg'>
-                {globalLoading === "profile-updation" && (
+            <div className='relative h-32 w-32 sm:h-40 sm:w-40 p-4 sm:p-5 border-2 border-gray-200 rounded-full flex items-center justify-center mx-auto shadow-lg'>
+                {(globalLoading === "profile-updation" || globalLoading === "newprofile-loading") && (
                     <div className='absolute inset-0 flex justify-center items-center'>
                         <Loader className="bg-transparent" />
                     </div>
                 )}
                 {profile ? (
-                    <img src={profile} alt="Profile" className='h-full w-full object-cover rounded-full cursor-pointer'
-                        onClick={() => setViewImage(profile)}
-                    />
+                    <ProgressiveImage src={profile} placeholder="https://assets-v2.lottiefiles.com/a/04b5804a-1161-11ee-b72d-2fca51545fab/sWU9zH0HSi.gif">
+                        {(src, loading) => (
+                            <img
+                                src={src}
+                                alt={profile}
+                                className={`flex justify-center items-center h-full w-full object-cover rounded-full cursor-pointer ${loading ? "blur-sm" : "blur-0"}`}
+                                onClick={() => setViewImage(profile)}
+                            />
+                        )}
+                    </ProgressiveImage>
                 ) : (
                     <i className="ph-duotone ph-user text-3xl sm:text-4xl"></i>
                 )}
@@ -129,15 +139,15 @@ const ProfileSection = () => {
                     </div>
                 ) : (
                     <>
-                        <label htmlFor="editProfileImage" className="text-[#ee6145] font-semibold cursor-pointer"
-                            onClick={() => handleEdit("profile")}>
+                        <button
+                            className="text-[#ee6145] font-semibold cursor-pointer"
+                            onClick={() => handleEdit("profile")}
+                        >
                             Edit Image
-                        </label>
-                        <input type="file" id="editProfileImage" className="hidden" accept="image/*"
-                            multiple={false} onChange={handleImageChange}
-                        />
+                        </button>
                     </>
                 )}
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple={false} onChange={handleImageChange} />
             </div>
 
             {/* Name Section */}

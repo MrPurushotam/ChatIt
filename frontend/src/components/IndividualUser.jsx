@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+import ProgressiveImage from "react-progressive-image";
 
 const IndividualUser = ({ isActive = true, chatDetail, onClick, loggedUser }) => {
   const date = new Date(chatDetail?.lastMessageAt).toLocaleTimeString('en-US', {
@@ -11,13 +11,18 @@ const IndividualUser = ({ isActive = true, chatDetail, onClick, loggedUser }) =>
   return (
     <div className={`w-full flex flex-row shadow-sm px-2 py-3 gap-2 cursor-default transition-colors ${isActive ? "border-l-4 border-l-red-500 bg-[#f6f6f6]" : "hover:bg-gray-50"}`} onClick={onClick}>
       <div className='w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-full overflow-hidden object-contain flex items-center justify-center bg-transparent '>
+
         {
           chatDetail.otherUserProfile ?
-            (<img
-              src={chatDetail.otherUserProfile}
-              alt="Profile"
-              className='h-full w-full object-cover rounded-full cursor-pointer'
-            />)
+            <ProgressiveImage src={chatDetail.otherUserProfile} placeholder="https://assets-v2.lottiefiles.com/a/04b5804a-1161-11ee-b72d-2fca51545fab/sWU9zH0HSi.gif">
+              {(src, loading) => (
+                <img
+                  src={src}
+                  alt="Profile"
+                  className={`h-full w-full object-cover rounded-full cursor-pointer ${loading ? "blur-sm" : "blur-0"}`}
+                />
+              )}
+            </ProgressiveImage>
             :
             (<i className="ph-duotone ph-user text-2xl sm:text-3xl text-gray-600"></i>)
         }
@@ -30,7 +35,7 @@ const IndividualUser = ({ isActive = true, chatDetail, onClick, loggedUser }) =>
           <h3 className="text-xs sm:text-sm text-gray-500 font-medium ml-auto flex-shrink-0">{date}</h3>
         </div>
         <div className="text-sm sm:text-base overflow-hidden">
-          <pre className="text-gray-600 truncate">{chatDetail?.lastMessage.split("\n")[0].substring(0, 33)}</pre> 
+          <pre className="text-gray-600 truncate">{chatDetail?.lastMessage.split("\n")[0].substring(0, 33)}</pre>
         </div>
       </div>
       <div className="flex-shrink-0 ml-2 ">

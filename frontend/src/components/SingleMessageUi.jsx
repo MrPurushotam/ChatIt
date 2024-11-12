@@ -1,4 +1,5 @@
 import React from 'react'
+import ProgressiveImage from 'react-progressive-image';
 
 const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
 
@@ -25,12 +26,16 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
             {message.attachments.map((attachment, index) => {
               if (attachment.fileType.includes("image")) {
                 return (
-                  <img
-                    key={attachment.id}
-                    src={attachment.fileUrl}
-                    alt={attachment.fileName}
-                    className="object-cover rounded-md h-full w-full"
-                  />
+                  <ProgressiveImage key={attachment.id} src={attachment.fileUrl} placeholder="https://assets-v2.lottiefiles.com/a/04b5804a-1161-11ee-b72d-2fca51545fab/sWU9zH0HSi.gif">
+                    {(src, loading) => (
+                      <img
+                        src={src}
+                        alt={attachment.fileName}
+                        className={`object-cover rounded-md h-full w-full ${loading ? "blur-sm" : "blur-0"}`}
+                        onClick={() => setViewImage(currentTextingUser.otherUserProfile)}
+                      />
+                    )}
+                  </ProgressiveImage>
                 );
               } else if (attachment.fileType.includes("video")) {
                 return (
