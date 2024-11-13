@@ -1,5 +1,5 @@
 import React from 'react'
-import ProgressiveImage from 'react-progressive-image';
+import ProgressiveImage from 'react-progressive-graceful-image';
 
 const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
 

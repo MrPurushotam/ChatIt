@@ -4,7 +4,7 @@ import { useRecoilRefresher_UNSTABLE, useRecoilState, useSetRecoilState } from '
 import useLoggedUser from '../Hooks/useLoggedUser';
 import initalizeApi from '../utils/Api';
 import Loader from './Loader';
-import ProgressiveImage from 'react-progressive-image';
+import ProgressiveImage from 'react-progressive-graceful-image';
 
 const ProfileSection = () => {
     const api = initalizeApi();

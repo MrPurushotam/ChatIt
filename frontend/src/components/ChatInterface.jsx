@@ -8,7 +8,7 @@ import ChatMessageArea from "./ChatMessageArea"
 import AttachmentPreview from "./AttachmentPreview"
 import Loader from "./Loader";
 import InfiniteScroll from 'react-infinite-scroller';
-import ProgressiveImage from "react-progressive-image"
+import ProgressiveImage from "react-progressive-graceful-image"
 
 const ChatInterface = ({ socket, loggedUser }) => {
     const api = initalizeApi();
