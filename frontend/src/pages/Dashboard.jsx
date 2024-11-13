@@ -3,6 +3,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { activeChatAtom, isConnectedAtom, viewImageAtom } from "../states/atoms";
 import Sidebar from "../components/Sidebar";
 import InitalLoader from "../components/InitalLoader";
+import ViewImage from "../components/ViewImage";
 // THOUGHT: I am thinking to add a temp page or loader just like whatsapp which will run untill chats are fetched , chatList is fetched & socket is connected successfully. Post that the chat window shoudl appear any error while fetching or connnecting any thing then it shall stop and logout! 
 
 const Dashboard = ({ socket, loggedUser }) => {
@@ -32,31 +33,7 @@ const Dashboard = ({ socket, loggedUser }) => {
               }
             </div>
           </div>
-          {viewImage && (
-            <div
-              className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-              onClick={() => setViewImage(null)}
-            >
-              <div className="relative max-w-[60vw] max-h-[60vh]" onClick={(e) => e.stopPropagation()}>
-                <div
-                  className="relative w-full max-w-[90vw] md:max-w-[60vw] h-auto max-h-[90vh] md:max-h-[60vh]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <img
-                    src={viewImage}
-                    alt="Enlarged view"
-                    className="w-full h-full object-contain"
-                  />
-                  <button
-                    className="absolute top-2 right-2 text-red-500 bg-black bg-opacity-50 rounded-full p-1"
-                    onClick={() => setViewImage(null)}
-                  >
-                    <i className="ph-duotone ph-x text-lg"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ViewImage/>
         </div>
       </div>
     </>

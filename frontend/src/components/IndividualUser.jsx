@@ -1,4 +1,4 @@
-import ProgressiveImage from "react-progressive-graceful-image";
+import ProgressiveImage from "./ProgressiveImage";
 
 const IndividualUser = ({ isActive = true, chatDetail, onClick, loggedUser }) => {
   const date = new Date(chatDetail?.lastMessageAt).toLocaleTimeString('en-US', {

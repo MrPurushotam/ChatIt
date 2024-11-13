@@ -1,8 +1,10 @@
 import React from 'react'
-import ProgressiveImage from 'react-progressive-graceful-image';
+import ProgressiveImage from "./ProgressiveImage";
+import { useSetRecoilState } from 'recoil';
+import { viewImageAtom } from '../states/atoms';
 
 const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
-
+  const setViewImage = useSetRecoilState(viewImageAtom);
   const date = new Date(message.sentAt).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
@@ -32,7 +34,7 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
                         src={src}
                         alt={attachment.fileName}
                         className={`object-cover rounded-md h-full w-full ${loading ? "blur-sm" : "blur-0"}`}
-                        onClick={() => setViewImage(currentTextingUser.otherUserProfile)}
+                        onClick={() => setViewImage(src)}
                       />
                     )}
                   </ProgressiveImage>

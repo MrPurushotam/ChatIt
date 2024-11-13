@@ -19,7 +19,6 @@
     "react-dom": "^18.3.1",
     "react-drag-drop-files": "^2.3.10",
     "react-infinite-scroller": "^1.2.6",
-    "react-progressive-graceful-image": "^0.7.0",
     "react-router-dom": "^6.26.1",
     "react-share": "^5.1.0",
     "react-simple-toast": "^1.0.10",

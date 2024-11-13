@@ -4,7 +4,8 @@ import { useRecoilRefresher_UNSTABLE, useRecoilState, useSetRecoilState } from '
 import useLoggedUser from '../Hooks/useLoggedUser';
 import initalizeApi from '../utils/Api';
 import Loader from './Loader';
-import ProgressiveImage from 'react-progressive-graceful-image';
+import ProgressiveImage from "./ProgressiveImage";
+import { useNavigate } from 'react-router-dom';
 
 const ProfileSection = () => {
     const api = initalizeApi();
@@ -14,6 +15,7 @@ const ProfileSection = () => {
     const [globalLoading, setGlobalLoading] = useRecoilState(globalLoadingAtom);
     const loggedUser = useLoggedUser();
     const fileInputRef = useRef(null);
+    const navigate = useNavigate();
 
     const [name, setName] = useState(loggedUser?.displayName || "");
     const [about, setAbout] = useState(loggedUser?.about || "");
@@ -112,7 +114,7 @@ const ProfileSection = () => {
                     </div>
                 )}
                 {profile ? (
-                    <ProgressiveImage src={profile} placeholder="https://assets-v2.lottiefiles.com/a/04b5804a-1161-11ee-b72d-2fca51545fab/sWU9zH0HSi.gif">
+                    <ProgressiveImage src={profile} placeholder="   ">
                         {(src, loading) => (
                             <img
                                 src={src}
@@ -181,8 +183,7 @@ const ProfileSection = () => {
                 {edit === "about" ? (
                     <div className='flex items-center space-x-3'>
                         <input type="text"
-                            className='flex-1 bg-transparent text-base sm:text-lg font-semibold border-b-2 
-                        border-gray-300 focus:outline-none focus:border-[#ee6145] transition-colors duration-300'
+                            className='flex-1 bg-transparent text-base sm:text-lg font-semibold border-b-2 border-gray-300 focus:outline-none focus:border-[#ee6145] transition-colors duration-300'
                             value={about} onChange={(e) => setAbout(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") handleSubmit()
@@ -199,6 +200,15 @@ const ProfileSection = () => {
                     </div>
                 )}
             </div>
+
+            {loggedUser?.email && <div className='space-y-2 sm:space-y-4'>
+                <h2 className='font-semibold text-[#ee6145] text-lg sm:text-xl'>Your Email</h2>
+                <div className='flex items-center justify-between'>
+                    <h2 className='text-gray-900 font-semibold text-base sm:text-lg px-1'>{loggedUser?.email}</h2>
+                    {loggedUser?.isVerified && <i className="ph-duotone ph-seal-check text-2xl text-green-700 "></i>}
+                    {!loggedUser?.isVerified && <i className="ph-duotone ph-seal-warning text-2xl text-red-700" onClick={()=>navigate(`/verify/${loggedUser?.email}`)}></i>}
+                </div>
+            </div>}
         </div>
     )
 }
