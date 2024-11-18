@@ -13,12 +13,12 @@ function authenticate(req,res,next){
         req.displayName=data.data.displayName
         req.profile=data.data.profile
         req.about=data.data.about
-        return next()  
+        return next()
     }
     
     if(!data.success && data.jwtExpire){
         console.log("JWT Expired")
-        return res.status(400).json({error:"Jwt Expired",success:false})
+        return res.status(400).json({error:"Jwt Expired",success:false,jwtExpired:true})
     }
     return res.status(400).json({error:"Session expired.",success:false})
 }

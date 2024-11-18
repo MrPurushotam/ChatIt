@@ -51,6 +51,7 @@ export const useLogout = () => {
             }
         } catch (error) {
             console.log("Some error occurred while logging out. ", error.message);
+            window.localStorage.clear("token");
         }
     }, [resetSocket, resetActiveChat, resetChats, resetMessages, resetListChats, resetAuthenticated, resetSelectedDropdownItem, resetViewImage, resetLoggedUser, navigate]);
 

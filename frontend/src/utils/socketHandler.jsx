@@ -5,6 +5,7 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import React, { useCallback, useRef, useEffect } from "react";
 import initalizeApi from "./Api";
 import useLoggedUser from "../Hooks/useLoggedUser";
+import useNotificationSound from "../Hooks/useNotificationSound";
 
 const SocketWrapper = ({ children }) => {
   const api = initalizeApi();
@@ -22,6 +23,8 @@ const SocketWrapper = ({ children }) => {
   const onlineChatsRef = useRef([]);
   const loggedUser = useLoggedUser();
 
+  // notification hook 
+  const notificationSound = useNotificationSound();
 
   const fetchChats = async (start = 0, end = 20) => {
     setIsConnected('inital-connect');
@@ -106,7 +109,8 @@ const SocketWrapper = ({ children }) => {
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current?.on("error", (error) => {
-      if (error.message === "JwtTokenExpired") {
+      if (error.message === "JwtTokenExpired" || error.data.jwtExpired) {
+        window.localStorage.clear("token");
         setAuthenticated(false)
         navigate("/signin")
       } else {
@@ -136,6 +140,8 @@ const SocketWrapper = ({ children }) => {
       );
       if (currentTextingUser && currentTextingUser.id === newMessage.chatId && currentTextingUser.otherUserId === newMessage.senderId) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }else{
+        notificationSound();
       }
     });
     socketRef.current?.on("update_unread_count", (details) => {

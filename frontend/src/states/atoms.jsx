@@ -51,7 +51,7 @@ export const fetchUserDetailSelector= selector({
             const resp = await api.get("/user/");
             if(resp.data.success){
                 return resp.data.user;
-            }else if (resp.status===401 && resp.data.message==="Jwt Expired"){
+            }else if ((resp.status===400 && resp.data.message==="Jwt Expired")|| resp.data.message==="Jwt Expired" ){
                 console.log("Write a logic to reset staes and logout")
                 return "Jwt Expired";
             }

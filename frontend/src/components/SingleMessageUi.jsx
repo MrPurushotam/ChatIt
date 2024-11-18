@@ -18,13 +18,15 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
     return `grid-cols-${Math.min(3, numAttachments)} grid-rows-${Math.ceil(numAttachments / 3)}`;
   };
 
+// THOUGHT  ig we should migrate from object-cover to either object-fit or object-scale-down
+
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div className={`flex flex-col w-full sm:w-10/12 md:w-8/12 lg:w-6/12 px-2 py-1 rounded-md shadow-md ${isUser ? "bg-[#ee6145]/85 text-white" : "bg-white text-black"}`}>
         <p className='text-base font-semibold'>{messageSentBy.length > 20 ? messageSentBy.substring(0, 20) : messageSentBy}</p>
 
         {message.attachments?.length > 0 && (
-          <div className={`grid gap-2 ${getGridClass(message.attachments.length)} aspect-ratio aspect-square h-48 sm:h-56 md:h-64 lg:h-72 w-full `}>
+          <div className={`grid gap-2 ${getGridClass(message.attachments.length)} aspect-ratio aspect-auto h-48 sm:h-56 md:h-64 lg:h-72 w-full `}>
             {message.attachments.map((attachment, index) => {
               if (attachment.fileType.includes("image")) {
                 return (
@@ -33,7 +35,7 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
                       <img
                         src={src}
                         alt={attachment.fileName}
-                        className={`object-cover rounded-md h-full w-full ${loading ? "blur-sm" : "blur-0"}`}
+                        className={`object-cover rounded-md h-full w-full max-w-full max-h-full ${loading ? "blur-sm" : "blur-0"} `}
                         onClick={() => setViewImage(src)}
                       />
                     )}
@@ -44,7 +46,7 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
                   <video
                     key={index}
                     controls
-                    className="rounded-md h-full w-full object-cover"
+                    className="rounded-md h-full w-full object-cover max-w-full max-h-full"
                     src={attachment.fileUrl}
                   >
                     Your browser does not support the video tag.
@@ -64,8 +66,8 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
               }
               else {
                 return (
-                  <div key={index} className="flex flex-col items-center justify-center p-2 border border-gray-300 rounded-md bg-gray-50 h-full w-full">
-                    <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                  <div key={index} className="flex flex-col items-center justify-center p-2 border border-gray-300 rounded-md bg-gray-50 h-full w-full max-w-full max-h-full">
+                    <a href={attachment.fileUrl} target="_blank" rel="noreferrer" className="text-blue-500 underline">
                       {attachment.fileName}
                     </a>
                     <p className="text-xs text-gray-400">File Type: {attachment.fileType}</p>

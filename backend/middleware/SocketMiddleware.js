@@ -1,18 +1,25 @@
-
 // const cookie = require("cookie")
 const { verifyToken } = require('../utils/constant');
 const prisma = require("../utils/PrismaInit");
+
+class CustomError extends Error {
+    constructor(message, data) {
+        super(message);
+        this.name = this.constructor.name; 
+        this.data = data;
+    }
+}
 
 function SocketIdMiddleware(socket, next) {
 
     try {
         const authHeader = socket.handshake.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return next(new Error("Authentication Error"));
+            return next(new CustomError("Authentication Error",{ code: 401, message: "Missing or invalid token.", tokenError:true }));
         }
         const token = authHeader.split("Bearer ")[1];
         if (!token) {
-            return next(new Error("Authentication Error"));
+            return next(new CustomError("Authentication Error",{ code: 401, message: "Token not found", tokenError:true }));
         }
         const data = verifyToken(token);
         if (data.success) {
@@ -24,12 +31,12 @@ function SocketIdMiddleware(socket, next) {
             return next()
         }
         if (!data.success && data.jwtExpire) {
-            return next(new Error("JwtTokenExpired"))
+            return next(new CustomError("JwtTokenExpired" ,{ code: 401, message: "Token expired", jwtExpired:true }))
         }
-        return next(new Error("Authentication Error"))
+        return next(new CustomError("Authentication Error",{ code: 401, message: "Invalid token", tokenError:true }))
     } catch (error) {
         console.log("Error :", error.message)
-        return next(new Error("Internal Error occured."))
+        return next(new CustomError("Internal Error occured.",{ code: 500, message: error.message }))
     }
 }
 
