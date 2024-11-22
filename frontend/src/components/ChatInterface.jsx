@@ -9,6 +9,12 @@ import AttachmentPreview from "./AttachmentPreview"
 import Loader from "./Loader";
 import InfiniteScroll from 'react-infinite-scroller';
 import ProgressiveImage from "./ProgressiveImage";
+import { formatToDDMMYYYY } from "../utils/dateFunction"
+
+//EXP removing auto scroll with user guided scroll. No need to auto scroll user can click on arrow and get down to chats 
+// TODO: We should add a green / orange dot over arrow which shall help us know when there is new chats. 
+// TODO: We can add a ringtone when a new message comes from the same chat user has opened then it shall play. 
+// TODO: chat wallpapers
 
 const ChatInterface = ({ socket, loggedUser }) => {
     const api = initalizeApi();
@@ -20,12 +26,11 @@ const ChatInterface = ({ socket, loggedUser }) => {
     const [attachment, setAttachment] = useRecoilState(attachmentAtom);
     const [typing, setTyping] = useState(false)
     const typingTimeoutRef = useRef(null)
-    const messagesEndRef = useRef(null)
-    const [globalLoading, setGlobalLoading] = useRecoilState(globalLoadingAtom)
-    const [isSending, setIsSending] = useState(false)
     const messageIdsRef = useRef(new Set())
     const messageRefs = useRef({});
-    const sanitizeUrl = (url) => url.replace(/\/{2,}/g, '/');
+
+    const [globalLoading, setGlobalLoading] = useRecoilState(globalLoadingAtom)
+    const [isSending, setIsSending] = useState(false)
     // drag and drop functionality test
     const [isDragging, setIsDragging] = useState(false);
     const dropZoneRef = useRef(null);
@@ -33,16 +38,27 @@ const ChatInterface = ({ socket, loggedUser }) => {
     // It shall keep track of number of message fetched
     const fetchMessageCounter = useRef(0);
     const [hasMore, setHasMore] = useState(true);
-
+    // auto scroll to unread message , scroll variables
+    const messagesEndRef = useRef(null)
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
+    // dynamic go to top button
+    const [showScrollToLatest, setShowScrollToLatest] = useState(false);
+    // adding date to messages 
+    const lastDate = useRef(null);
 
     const scrollToFirstUnreadMessage = useCallback(() => {
         const firstUnreadMessage = Object.values(messageRefs.current).find(msg => (msg.status === "SENT" && msg.senderId !== loggedUser.id));
         if (firstUnreadMessage?.element) {
             firstUnreadMessage.element.scrollIntoView({ behavior: "smooth", block: "center" });
         } else {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            scrollToLatestMessage();
         }
-    }, [message])
+    }, [loggedUser.id])
+
+    const scrollToLatestMessage = useCallback(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        setIsUserScrolling(false);
+    }, []);
 
     const updateOutgoingMessage = (chatId, content, sentAt) => {
         setChats((prev) => prev.map((chat) => chat.id === chatId ? { ...chat, lastMessage: content, lastMessageAt: sentAt } : chat));
@@ -102,7 +118,6 @@ const ChatInterface = ({ socket, loggedUser }) => {
             })
 
             const resp = await api.post(`/chat/upload/${currentTextingUser.id}`, formdata);
-            console.log("response form file upload", resp.data);
             if (resp.data.success) {
                 const fileInfo = resp.data.files;
                 const tempId = Date.now().toString();
@@ -157,7 +172,6 @@ const ChatInterface = ({ socket, loggedUser }) => {
         }
     }
     const fetchMessages = async (count = 50) => {
-        console.log("Fetch function ran")
         if (globalLoading === "fetching-messages") {
             return;
         }
@@ -215,8 +229,21 @@ const ChatInterface = ({ socket, loggedUser }) => {
     const debouncedMarkMessageAsRead = useDebounce(markMessageAsRead, 10);
 
     const handleScroll = useCallback(() => {
+        setIsUserScrolling(true);
+        const chatArea = document.getElementById("ChatArea");
+        if (!chatArea) return;
+
+        const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
+        if (isAtBottom) {
+            setIsUserScrolling(false);
+            setShowScrollToLatest(false);
+        } else {
+            setIsUserScrolling(true);
+            setShowScrollToLatest(true);
+        }
+
         const messageElements = document.querySelectorAll('.message');
-        const viewportHeight = window.innerHeight;
+        const viewportHeight = chatArea.clientHeight;
         const messageToRead = [];
         messageElements.forEach((element) => {
             const rect = element.getBoundingClientRect();
@@ -236,21 +263,31 @@ const ChatInterface = ({ socket, loggedUser }) => {
         }
     }, [debouncedMarkMessageAsRead, loggedUser.id]);
 
+    const debounceScroll = useDebounce(handleScroll, 60);
+
     useEffect(() => {
         const chatArea = document.getElementById("ChatArea");
         if (chatArea) {
-            chatArea.addEventListener('scroll', handleScroll);
-            return () => chatArea.removeEventListener('scroll', handleScroll);
+            chatArea.addEventListener('scroll', debounceScroll);
+            return () => chatArea.removeEventListener('scroll', debounceScroll);
         }
-    }, [handleScroll]);
+    }, [debounceScroll]);
 
     useEffect(() => {
-        handleScroll();
-    }, [messages, handleScroll]);
+        if (!isUserScrolling) {
+            const chatArea = document.getElementById('ChatArea');
+            if (!chatArea) return;
 
-    useEffect(() => {
-        scrollToFirstUnreadMessage()
-    }, [messages])
+            const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
+
+            if (isAtBottom) {
+                scrollToLatestMessage();
+            } else {
+                scrollToFirstUnreadMessage();
+            }
+        }
+    }, [messages, isUserScrolling, scrollToFirstUnreadMessage, scrollToLatestMessage]);
+
 
     useEffect(() => {
         if (currentTextingUser) {
@@ -387,7 +424,7 @@ const ChatInterface = ({ socket, loggedUser }) => {
                     </div>
                 </section>
 
-                <section id="ChatArea" className={`flex flex-col overflow-y-auto bg-[#f6f6f6] px-3 py-2 space-y-2 w-full h-full  ${isDragging ? 'bg-blue-100' : ''}`}
+                <section id="ChatArea" className={`relative flex flex-col overflow-y-auto bg-[#f6f6f6] px-3 py-2 space-y-2 w-full h-full  ${isDragging ? 'bg-blue-100' : ''}`}
                     onDragEnter={handleDragIn}
                     onDragLeave={handleDragOut}
                     onDragOver={handleDrag}
@@ -429,29 +466,50 @@ const ChatInterface = ({ socket, loggedUser }) => {
 
                         {
                             messages?.map((msg) => {
+                                const messageDate = formatToDDMMYYYY(msg.sentAt);
+                                const isNewDate = messageDate !== lastDate.current;
+                                lastDate.current = messageDate;
                                 return (
-                                    <div
-                                        key={msg.id}
-                                        className="message"
-                                        data-message-id={msg.id}
-                                        ref={el => {
-                                            if (el) {
-                                                messageRefs.current[msg.id] = { ...msg, element: el };
-                                            }
-                                        }}
-                                    >
-                                        <SingleMessageUi
-                                            message={msg}
-                                            isUser={msg.senderId !== currentTextingUser.otherUserId}
-                                            messageSentBy={`${msg.senderId === currentTextingUser.otherUserId ? currentTextingUser.otherUserName : "You"}`}
-                                        />
+                                    <div key={msg.id} className="flex flex-col">
+                                        {isNewDate && (
+                                            <div className="flex justify-center items-center my-4">
+                                                <div className="flex-grow h-[1px] bg-gradient-to-l from-gray-400 via-gray-400 to-transparent" />
+                                                <span className="mx-4 px-4 py-1 text-black text-sm font-medium rounded-full ">
+                                                    {messageDate}
+                                                </span>
+                                                <div className="flex-grow h-[1px] bg-gradient-to-l from-transparent via-gray-400 to-gray-400" />
+                                            </div>
+                                        )}
+                                        <div
+                                            key={msg.id}
+                                            className="message"
+                                            data-message-id={msg.id}
+                                            ref={el => {
+                                                if (el) {
+                                                    messageRefs.current[msg.id] = { ...msg, element: el };
+                                                }
+                                            }}
+                                        >
+                                            <SingleMessageUi
+                                                message={msg}
+                                                isUser={msg.senderId !== currentTextingUser.otherUserId}
+                                                messageSentBy={`${msg.senderId === currentTextingUser.otherUserId ? currentTextingUser.otherUserName : "You"}`}
+                                            />
+                                        </div>
                                     </div>
                                 )
                             })
                         }
                     </InfiniteScroll>
+                    {showScrollToLatest && (
+                        <button
+                            onClick={scrollToLatestMessage}
+                            className="sticky inline bottom-4 left-[100%] bg-gray-900/80 text-white p-2 rounded-full shadow-lg w-10"
+                        >
+                            ↓
+                        </button>
+                    )}
                     <div ref={messagesEndRef} />
-
                 </section>
 
                 <section id="ChatMessageArea" className="p-2 sm:p-3 w-full border-t-2 border-gray-100 bg-[#f4f4f6]">

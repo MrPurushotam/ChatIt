@@ -2,11 +2,12 @@ import Searchbar from "../components/Searchbar"
 import IndividualUser from "../components/IndividualUser"
 import SettingsInterface from "../components/SettingsInterface"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { activeChatAtom, chatsAtom, globalLoadingAtom, isUserConnectedToInternetAtom, listChatsAtom, loggedUserAtom, selectedDropDownItemAtom } from "../states/atoms";
 import Loader from "./Loader";
+import InfiniteScroll from "react-infinite-scroller";
 
-const Sidebar = () => {
+const Sidebar = ({hasMoreChats,fetchChats}) => {
     const [listChats, setListChats] = useRecoilState(listChatsAtom);
     const selectedDropdownItem = useRecoilValue(selectedDropDownItemAtom);
     const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);
@@ -14,6 +15,9 @@ const Sidebar = () => {
     const loggedUser = useRecoilValue(loggedUserAtom);
     const isConnectedToInternet = useRecoilValue(isUserConnectedToInternetAtom);
     const globalLoading = useRecoilValue(globalLoadingAtom);
+
+    // Infinite scroll variables
+    const dropZoneRef = useRef(null);
 
     const sortChatsInDesc = useMemo(() => {
         let filteredChats = [...chats];
@@ -33,7 +37,7 @@ const Sidebar = () => {
         const selectedChat = chats.find(chat => chat.id === id);
         setCurrentTextingUser(selectedChat);
     }
-
+// FIXME: Test the code if it works?
     return (
         <>
             <div className="h-full flex flex-col overflow-hidden">
@@ -54,7 +58,7 @@ const Sidebar = () => {
                             }
                         </nav>
 
-                        <div className="h-full overflow-x-hidden overflow-y-auto">
+                        <div className="h-full overflow-x-hidden overflow-y-auto" ref={dropZoneRef}>
                             {/* list users here */}
                             {globalLoading === "fetching-chats" ?
                                 <div className="sticky h-full w-full flex justify-center items-center">
@@ -78,15 +82,26 @@ const Sidebar = () => {
                                     </p>
                                 </div>
                             }
-                            {sortChatsInDesc?.map((chat) => (
-                                <IndividualUser
-                                    key={chat.id}
-                                    chatDetail={chat}
-                                    isActive={currentTextingUser?.id === chat.id}
-                                    onClick={() => handleChatClick(chat.id)}
-                                    loggedUser={loggedUser}
-                                />
-                            ))}
+                            <InfiniteScroll
+                                pageStart={sortChatsInDesc.length}
+                                loadMore={()=>{fetchChats(sortChatsInDesc.length,sortChatsInDesc.length+20)}}
+                                hasMore={hasMoreChats}
+                                loader={<Loader className=" flex justify-center overflow-hidden" />}
+                                useWindow={false}
+                                getScrollParent={() => dropZoneRef.current}     
+                            >
+
+                                {sortChatsInDesc?.map((chat) => (
+                                    <IndividualUser
+                                        key={chat.id}
+                                        chatDetail={chat}
+                                        isActive={currentTextingUser?.id === chat.id}
+                                        onClick={() => handleChatClick(chat.id)}
+                                        loggedUser={loggedUser}
+                                    />
+                                ))}
+
+                            </InfiniteScroll>
                         </div>
                     </>}
 
@@ -96,3 +111,39 @@ const Sidebar = () => {
 }
 
 export default Sidebar
+
+
+// <InfiniteScroll
+//                         className="space-y-2"
+//                         pageStart={messages.length}
+//                         loadMore={fetchMessages}
+//                         hasMore={hasMore}
+//                         loader={<Loader className=" flex justify-center overflow-hidden" />}
+//                         useWindow={false}
+//                         isReverse={true}
+//                         getScrollParent={() => dropZoneRef.current}
+//                     >
+
+//                         {
+//                             messages?.map((msg) => {
+//                                 return (
+//                                     <div
+//                                         key={msg.id}
+//                                         className="message"
+//                                         data-message-id={msg.id}
+//                                         ref={el => {
+//                                             if (el) {
+//                                                 messageRefs.current[msg.id] = { ...msg, element: el };
+//                                             }
+//                                         }}
+//                                     >
+//                                         <SingleMessageUi
+//                                             message={msg}
+//                                             isUser={msg.senderId !== currentTextingUser.otherUserId}
+//                                             messageSentBy={`${msg.senderId === currentTextingUser.otherUserId ? currentTextingUser.otherUserName : "You"}`}
+//                                         />
+//                                     </div>
+//                                 )
+//                             })
+//                         }
+//                     </InfiniteScroll>

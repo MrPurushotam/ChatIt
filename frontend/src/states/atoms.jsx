@@ -51,11 +51,11 @@ export const fetchUserDetailSelector= selector({
             const resp = await api.get("/user/");
             if(resp.data.success){
                 return resp.data.user;
-            }else if ((resp.status===400 && resp.data.message==="Jwt Expired")|| resp.data.message==="Jwt Expired" ){
-                console.log("Write a logic to reset staes and logout")
-                return "Jwt Expired";
             }
         } catch (error) {
+            if(error.response.data.jwtExpired || error.response.data.error==="Jwt Expired"||(error.response.status===400 && error.response.data.error==="Jwt Expired")){
+                return "Jwt Expired";
+            }
             console.error("Some error occured while fetching user details ",error.message);
             return null;
         }

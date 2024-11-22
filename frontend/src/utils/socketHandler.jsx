@@ -2,7 +2,7 @@ import { io } from "socket.io-client"
 import { activeChatAtom, authenticatedAtom, chatsAtom, disconnectSocketAtom, messagesAtom, isUserConnectedToInternetAtom, globalLoadingAtom, isConnectedAtom } from "../states/atoms";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useRef, useEffect, useState } from "react";
 import initalizeApi from "./Api";
 import useLoggedUser from "../Hooks/useLoggedUser";
 import useNotificationSound from "../Hooks/useNotificationSound";
@@ -22,6 +22,9 @@ const SocketWrapper = ({ children }) => {
   const navigate = useNavigate();
   const onlineChatsRef = useRef([]);
   const loggedUser = useLoggedUser();
+  
+  // infite chat scroll variables 
+  const [hasMoreChats,setHasMoreChats]=useState(false);
 
   // notification hook 
   const notificationSound = useNotificationSound();
@@ -33,6 +36,9 @@ const SocketWrapper = ({ children }) => {
       const resp = await api.get(`/chat/${start}/${end}`);
       if (resp.data.success) {
         const allChats = resp.data.chats;
+        if(allChats.length===start+end){
+          setHasMoreChats(true);
+        }
         setChats(allChats);
       } else {
         console.log(resp.data.message);
@@ -60,7 +66,7 @@ const SocketWrapper = ({ children }) => {
         socketRef.current.disconnect();
       }
     };
-  }, [url, socketRef, fetchChats, isConnectedToInternet]);
+  }, [url, socketRef, isConnectedToInternet]);
 
   useEffect(() => {
     if (!socketRef.current && isConnectedToInternet) {
@@ -110,7 +116,7 @@ const SocketWrapper = ({ children }) => {
     if (!socketRef.current) return;
     socketRef.current?.on("error", (error) => {
       if (error.message === "JwtTokenExpired" || error.data.jwtExpired) {
-        window.localStorage.clear("token");
+        window.localStorage.removeItem("token");
         setAuthenticated(false)
         navigate("/signin")
       } else {
@@ -170,7 +176,7 @@ const SocketWrapper = ({ children }) => {
   return (
     <React.Fragment>
       {React.Children.map(children, child =>
-        React.cloneElement(child, { socket: socketRef.current, loggedUser })
+        React.cloneElement(child, { socket: socketRef.current, loggedUser, fetchChats,hasMoreChats})
       )}
     </React.Fragment>
   )

@@ -6,7 +6,7 @@ import InitalLoader from "../components/InitalLoader";
 import ViewImage from "../components/ViewImage";
 // THOUGHT: I am thinking to add a temp page or loader just like whatsapp which will run untill chats are fetched , chatList is fetched & socket is connected successfully. Post that the chat window shoudl appear any error while fetching or connnecting any thing then it shall stop and logout! 
 
-const Dashboard = ({ socket, loggedUser }) => {
+const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
   const currentTextingUser = useRecoilValue(activeChatAtom);
   const [viewImage, setViewImage] = useRecoilState(viewImageAtom)
   const isConnected = useRecoilValue(isConnectedAtom);
@@ -20,7 +20,7 @@ const Dashboard = ({ socket, loggedUser }) => {
         <div className="w-full sm:w-full md:w-full lg:w-[1500px] h-full bg-white border-x-2 border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-[4fr_9fr] h-full">
             <div className={`hidden sm:block ${currentTextingUser ? 'hidden md:block' : 'block'} overflow-hidden`}>
-              <Sidebar />
+              <Sidebar fetchChats={fetchChats} hasMoreChats = {hasMoreChats} />
             </div>
             <div className=" static h-full border-l-2 border-gray-300">
               {
