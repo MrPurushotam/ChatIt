@@ -146,3 +146,33 @@
     @apply text-xl hover:text-[#ee6145] transition-transform transform hover:scale-110 cursor-pointer
   }
 }
+
+
+.hero-bg{
+  background: url('../public/hero-section.png') no-repeat center cover;
+}
+.glow-effect {
+  text-shadow: 0 0 8px rgba(255, 204, 0, 0.8), 0 0 16px rgba(255, 204, 0, 0.6);
+}
+
+
+@keyframes underline-loop {
+  0% {
+    width: 0;
+    left: 0;
+  }
+  50% {
+    width: 100%;
+    left: 0;
+  }
+  100% {
+    width: 0;
+    left: 100%;
+  }
+}
+
+@keyframes floatAnimation {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}

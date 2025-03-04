@@ -1,17 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import initalizeApi from "../utils/Api";
 import { useLogout } from '../Hooks/useLogout';
 
 const VerifyEmail = () => {
-    const api =initalizeApi();
+    const api = initalizeApi();
     const params = useParams();
     const navigate = useNavigate();
     const [email, setEmail] = useState(params.email || "");
     const [code, setCode] = useState("");
+    const [validCode, setValidCode] = useState(false)
     const [loading, setLoading] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(60); // Start the cooldown on page load
     const logout = useLogout();
+    const codeRegex = /^\d{6}$/
+
     // Start the countdown as soon as the component mounts
     useEffect(() => {
         if (resendCooldown > 0) {
@@ -80,40 +83,36 @@ const VerifyEmail = () => {
         getStatus();
     }, [navigate]);
 
-    // Atom orbit effect (custom cursor)
-    useEffect(() => {
-        const handleMouseMove = (e) => {
-            const cursor = document.querySelector('.custom-cursor');
-            cursor.style.left = `${e.pageX - 10}px`;
-            cursor.style.top = `${e.pageY - 10}px`;
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
-
     return (
         <div className="flex items-center justify-center h-screen bg-gray-100 relative overflow-hidden">
             <button
                 onClick={logout}
-                className='    absolute bg-red-500 text-white font-semibold tracking-wider px-4 py-2 rounded-md shadow-md text-base sm:text-lg md:text-xl lg:text-2xl top-2 right-4 sm:top-4 sm:right-6 md:top-5 md:right-8 lg:right-10 transition-all duration-300 ease-in-out'>
+                className='absolute bg-red-500 text-white font-semibold tracking-wider px-4 py-2 rounded-md shadow-md text-base sm:text-lg md:text-xl lg:text-2xl top-2 right-4 sm:top-4 sm:right-6 md:top-5 md:right-8 lg:right-10 transition-all duration-300 ease-in-out'>
                 Logout
             </button>
-            {/* Atom-orbit (custom cursor) */}
-            <div className="custom-cursor fixed w-40 h-40 pointer-events-none">
-                <div className="atom-orbit">
-                    <div className="electron electron-red"></div>
-                    <div className="electron electron-blue"></div>
-                    <div className="electron electron-green"></div>
-                    <div className="electron electron-yellow"></div>
-                </div>
-            </div>
+
+            {/* Circular Rings */}
+            <div className="absolute rounded-full border-4 border-gray-300 w-[250px] h-[250px] right-[-75px] top-[50%] translate-y-[-50%]"></div>
+            <div className="absolute rounded-full border-4 border-cyan-400 w-[300px] h-[300px] right-[-100px] top-[50%] translate-y-[-50%]"></div>
+            <div className="absolute rounded-full border-4 border-yellow-400 w-[350px] h-[350px] right-[-125px] top-[50%] translate-y-[-50%]"></div>
+
+            {/* Oscillating Ball */}
+            <div className="absolute bg-orange-500 w-[40px] h-[40px] rounded-full right-[15%] top-[50%] animate-bounce"></div>
+
+            {/* Circular Rings */}
+            <div className="absolute rounded-full border-4 border-gray-300 w-[250px] h-[250px] left-[-75px] top-[50%] translate-y-[-50%]"></div>
+            <div className="absolute rounded-full border-4 border-cyan-400 w-[300px] h-[300px] left-[-100px] top-[50%] translate-y-[-50%]"></div>
+            <div className="absolute rounded-full border-4 border-yellow-400 w-[350px] h-[350px] left-[-125px] top-[50%] translate-y-[-50%]"></div>
+
+            {/* Oscillating Ball */}
+            <div className="absolute bg-orange-500 w-[40px] h-[40px] rounded-full left-[15%] top-[50%] animate-bounce"></div>
+
 
             {/* Main content */}
             <div className="max-w-[500px] bg-white p-8 rounded-md shadow-md z-10 relative">
-                <h2 className="text-2xl font-bold text-center mb-6">Verify Email</h2>
+                <h2 className="text-2xl font-bold text-center mb-6 tracking-wide">Verify Email</h2>
                 <p className='text-gray-800 text-sm tracking-wider my-2 break-words'>
-                    We have sent you mail at your provided mail. Please check your spam folder. If you still don't find it, you can request for a resend.
+                    We have sent you mail at your provided mail. Please check your spam folder. If you still don't find it, you can request for a resend mail. The email would be from purushotamjeswani (ignore my unprofessionalism)
                 </p>
                 <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
                     {/* Email input */}
@@ -122,11 +121,10 @@ const VerifyEmail = () => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
+                            placeholder="Your email"
                             className="flex-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                             disabled={true} // Make email non-editable
                         />
-                        <i className="ml-2 cursor-pointer" title="Email format: user@example.com">ℹ️</i>
                     </div>
 
                     {/* Verification code input */}
@@ -138,13 +136,18 @@ const VerifyEmail = () => {
                                 const value = e.target.value;
                                 if (/^\d*$/.test(value) && value.length <= 6) {
                                     setCode(value);
+                                    setValidCode(codeRegex.test(value));
                                 }
                             }}
                             placeholder="Enter verification code"
                             className="flex-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                         />
-                        <i className="ml-2 cursor-pointer" title="Code must be 6 digits">ℹ️</i>
                     </div>
+                    {!validCode && (
+                        <p className="mt-2 text-sm text-red-500">
+                            Please enter a valid code format (eg. XXXXXX).
+                        </p>
+                    )}
 
                     {/* Small text for Resend Code with countdown */}
                     <div className="text-right text-gray-600 text-sm">
