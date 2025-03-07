@@ -1,15 +1,12 @@
-import Footer from "../components/Footer"
-import Navbar from "../components/navbar"
 import FeedbackForm from "../components/review/reviewForm"
 
 const Review = () => {
   return (
-    <div className="w-full h-full flex flex-col">
-      <Navbar />
-      <div className="flex flex-1 items-center">
+    <div className="w-full h-full flex flex-col py-5 px-3">
+      <h2 className="text-center text-2xl font-medium tracking-wide py-5"> Provide Feedback / Report bug</h2>
+      <div className="flex flex-1 items-center p-3">
         <FeedbackForm />
       </div>
-      <Footer />
     </div>
   )
 }

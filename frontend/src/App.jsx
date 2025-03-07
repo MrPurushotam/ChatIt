@@ -11,6 +11,7 @@ import { ProtectedRoute, UnProtectedRoute, UnVerifiedRoute, VerifiedRoute } from
 import Loader from './components/Loader';
 import AboutDev from './pages/AboutDev';
 import Review from './pages/Review';
+import BasicLayout from './layout/basiclayout';
 // import BetaSignin from './Beta-Pages/signin';
 // import BetaUpdateProfileOnce from './Beta-Pages/UpdateProfileOnce';
 
@@ -79,15 +80,15 @@ function App() {
         }
         <Suspense fallback={<Loader />}>
           <Routes>
-            <Route index path="/" element={<Home />} />
-            <Route index path="/aboutdev" element={<AboutDev />} />
-            <Route index path="/review" element={<Review />} />
+            <Route index path="/" element={<BasicLayout><Home /></BasicLayout>} />
+            <Route index path="/aboutdev" element={<BasicLayout><AboutDev /></BasicLayout>} />
+            <Route index path="/review" element={<BasicLayout><Review /></BasicLayout>} />
 
             {/* beta ui changes to be looked at later stage */}
             {/* <Route path="/test" element={<BetaSignin />} />
             <Route path="/test2" element={<VerifyEmail />} />
             <Route path="/test3" element={<BetaUpdateProfileOnce />} /> */}
-            
+
 
             <Route element={<UnProtectedRoute />}>
               <Route path="/signin" element={<SigninPage />} />
