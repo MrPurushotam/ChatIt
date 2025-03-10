@@ -91,7 +91,7 @@ function App() {
 
 
             <Route element={<UnProtectedRoute />}>
-              <Route path="/signin" element={<SigninPage />} />
+              <Route path="/signin" element={<BasicLayout><SigninPage /></BasicLayout>} />
             </Route>
             <Route element={<ProtectedRoute />}>
 

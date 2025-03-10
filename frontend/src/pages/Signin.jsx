@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { authenticatedAtom } from '../states/atoms';
 import ToastNotification, { showToast } from '../components/toast';
+import Loader from '../components/Loader'; // Import the Loader component
 
 const Signin = () => {
 
@@ -20,6 +21,7 @@ const Signin = () => {
     const [forgotPassword, setForgotPassword] = useState(false); // State for forgot password flow
     const [codeSent, setCodeSent] = useState(false); // Track if code was sent
     const [resendCooldown, setResendCooldown] = useState(0);
+    const [loading, setLoading] = useState(false); // State for loading
 
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,13 +50,13 @@ const Signin = () => {
                     setCodeSent(true);
                     setResendCooldown(60);
 
-                    showToast("Verification code sent to your email","success");
+                    showToast("Verification code sent to your email", "success");
                 } else {
-                    showToast(resp.data.message,"error");
+                    showToast(resp.data.message, "error");
                 }
             } catch (error) {
                 console.log("Error occured while processing forgot password request.", error.message);
-                showToast("Error occurred while processing forgot password request.","error");
+                showToast("Error occurred while processing forgot password request.", "error");
             }
         }
     }
@@ -62,21 +64,21 @@ const Signin = () => {
         e.preventDefault();
         if (setResendCooldown > 0) return;
         if (!emailRegex.test(formdata.email)) {
-            showToast("Please enter a valid email","error");
+            showToast("Please enter a valid email", "error");
             return;
         }
         try {
             const resp = await api.post("/user/forgotpassword", { email: formdata.email })
             if (resp.data.success) {
                 setResendCooldown(60);
-                showToast("Verification code resent to your email","success");
+                showToast("Verification code resent to your email", "success");
             } else {
-                showToast(resp.data.message,"error");
+                showToast(resp.data.message, "error");
             }
 
         } catch (error) {
             console.log("Error occured while processing resend mail request.", error.message);
-            showToast("Error occurred while processing resend mail request.","error");
+            showToast("Error occurred while processing resend mail request.", "error");
 
         }
     }
@@ -85,27 +87,27 @@ const Signin = () => {
         e.preventDefault();
         try {
             if (!formdata.code || !validPassword) {
-                showToast("Please provide a valid 6-digit code and a valid password.","error");
+                showToast("Please provide a valid 6-digit code and a valid password.", "error");
                 return;
             }
             const resp = await api.post("/user/verifypassword", { email: formdata.email, code: formdata.code, password: formdata.password });
             if (resp.data.success) {
                 setForgotPassword(false);
-                showToast("Password updated! Please log in.","success");
+                showToast("Password updated! Please log in.", "success");
                 navigate("/login");
             } else {
-                showToast(resp.data.message,"error");
+                showToast(resp.data.message, "error");
             }
         } catch (error) {
             console.log("Error verifying code:", error.message);
-            showToast("Error verifying code.","error");
+            showToast("Error verifying code.", "error");
         }
     };
     const submit = async (e) => {
         e.preventDefault();
 
         if (!validEmail || (signup && !validPassword) || (signup && !validUsername)) {
-            showToast("Please correct the fields with errors.","error");
+            showToast("Please correct the fields with errors.", "error");
             return;
         }
 
@@ -113,6 +115,7 @@ const Signin = () => {
             alert("Are you sure about your password? It's " + formdata.password);
         }
 
+        setLoading(true); // Set loading to true
         try {
             const endpoint = signup ? "/user/signup" : "/user/login";
             const resp = await api.post(endpoint, formdata);
@@ -121,19 +124,21 @@ const Signin = () => {
                 setAuthenticated(true);
                 window.localStorage.setItem("token", resp.data.token);
                 if (signup) {
-                    showToast("Signup successful! Please verify your email.","success");
+                    showToast("Signup successful! Please verify your email.", "success");
                     navigate(`/verify/${formdata.email}`);
                 } else {
-                    showToast("Login successful! Redirecting to dashboard.","success");
+                    showToast("Login successful! Redirecting to dashboard.", "success");
                     navigate(`/dashboard`);
                 }
             } else {
-                showToast(resp.data.message,"error");
+                showToast(resp.data.message, "error");
                 console.log("Some error occurred");
             }
         } catch (e) {
             console.log("Error occurred:", e.message);
-            showToast(e.message,"error");
+            showToast(e.message, "error");
+        } finally {
+            setLoading(false); // Set loading to false
         }
     };
 
@@ -146,10 +151,10 @@ const Signin = () => {
     const handlePasswordChange = (e) => {
         const value = e.target.value;
         setFormdata(prev => ({ ...prev, password: value }));
-        if(signup){
+        if (signup) {
             setValidPassword(passwordRegex.test(value));
-        }else{
-            setValidPassword(value.length>0)
+        } else {
+            setValidPassword(value.length > 0)
         }
     };
     const handleUsernameChange = (e) => {
@@ -166,27 +171,27 @@ const Signin = () => {
         }
     };
     return (
-        <div className="w-full h-dvh bg-gray-200 flex justify-center items-center">
-            <div className="relative w-[580px] min-h-[750px] h-auto bg-gray-100 rounded-lg shadow-lg flex flex-col justify-normal items-center px-8 py-3">
+        <div className="w-full h-dvh mt-4 py-4 overflow-auto bg-gray-200 flex justify-center items-center">
+            <div className="relative w-[580px] min-h-[750px] h-auto bg-gray-100 rounded-lg shadow-lg flex flex-col justify-normal items-center px-8 my-5">
                 <div className="flex justify-center mt-6 mb-3">
                     <Link to="/" className="border-b-gray-700 border-b-4 pb-2 text-2xl font-bold text-gray-900">
                         Chat<span className='text-yellow-500 font-bold text-3xl'>I</span>T
-                        
+
                     </Link>
                 </div>
-            <ToastNotification/>
+                <ToastNotification />
                 <p className='block text-sm font-semibold text-gray-900 tracking-normal w-10/12 shadow-md shadow-yellow-500 p-2 rounded-md'> Welcome to ChatIt, your ultimate chat application. Sign up or log in to connect effortlessly with friends and family.</p>
 
                 {/* <hr className="border-2 border-dashed border-orange-500 w-9/12 mt-6" /> */}
 
-                <div className='my-6 w-10/12 lg:w-[28rem] p-2'>
+                <div className='my-4 w-10/12 lg:w-[28rem] p-2'>
                     <div className="mx-auto my-auto flex flex-col justify-center pt-8 md:justify-start md:px-6 md:pt-0">
                         <p className="text-center text-3xl font-bold my-3">{forgotPassword ? "Reset Password" : signup ? "Signup" : "Login"}</p>
 
                         {forgotPassword ?
-                            <form className="flex flex-col pt-3 md:pt-6" onSubmit={(e) => codeSent ? handleVerifyCode(e) : handleForgotPassword(e)}>
+                            <form className="flex flex-col pt-3 md:pt-8" onSubmit={(e) => codeSent ? handleVerifyCode(e) : handleForgotPassword(e)}>
                                 <div className="flex flex-col pt-4">
-                                    <div className={` relative flex overflow-hidden border-b-2 transition ${validEmail ? 'border-green-500' : 'border-red-500'}`}>
+                                    <div className={` relative flex items-center overflow-hidden border-b-2 transition ${validEmail ? 'border-green-500' : 'border-red-500'}`}>
                                         <input
                                             type="email"
                                             id="email"
@@ -197,14 +202,11 @@ const Signin = () => {
                                         />
                                         <div className="relative group">
                                             <i
-                                                className="ml-2 cursor-pointer text-gray-500"
-                                                title="Email format info"
+                                                className="ph-duotone ph-info text-2xl ml-2 cursor-pointer"
+                                                title="Email  must be a valid email format, e.g., user@example.com."
                                             >
-                                                ℹ️
                                             </i>
-                                            <div className="absolute z-30 left-0 top-6 hidden w-64 rounded-lg bg-gray-800 p-4 text-sm text-white shadow-lg group-hover:block transition-opacity duration-300 ease-in-out">
-                                                Must be a valid email format, e.g., user@example.com.
-                                            </div>
+
                                         </div>
                                     </div>
                                     {!validEmail && (
@@ -217,7 +219,7 @@ const Signin = () => {
                                 {codeSent &&
                                     <>
                                         <div className="flex flex-col pt-4">
-                                            <div className={` relative flex overflow-hidden border-b-2 transition ${validCode ? 'border-green-500' : 'border-red-500'}`}>
+                                            <div className={` relative flex items-center overflow-hidden border-b-2 transition ${validCode ? 'border-green-500' : 'border-red-500'}`}>
                                                 <input
                                                     type="text"
                                                     id="forgotpassword-code"
@@ -226,7 +228,7 @@ const Signin = () => {
                                                     value={formdata.code}
                                                     onChange={handleCodeChange}
                                                 />
-                                                <i className="ml-2 cursor-pointer" title="Verification Code should be of only 6 digit number.">ℹ️</i>
+                                                <i className="ph-duotone ph-info text-2xl ml-2 cursor-pointer" title="Verification Code should be of only 6 digit number."></i>
                                             </div>
                                             {!validCode && (
                                                 <p className="mt-2 text-sm text-red-500">
@@ -236,7 +238,7 @@ const Signin = () => {
                                         </div>
 
                                         <div className="flex flex-col pt-4">
-                                            <div className={`focus-within:border-b-gray-500 relative flex overflow-hidden border-b-2 transition ${validPassword ? 'border-green-500' : 'border-red-500'}`}>
+                                            <div className={`focus-within:border-b-gray-500 relative flex items-center overflow-hidden border-b-2 transition ${validPassword ? 'border-green-500' : 'border-red-500'}`}>
                                                 <input
                                                     type="password"
                                                     id="newpassword"
@@ -245,7 +247,8 @@ const Signin = () => {
                                                     value={formdata.password}
                                                     onChange={handlePasswordChange}
                                                 />
-                                                <i className="ml-2 cursor-pointer" title="Password must be at least 8 characters, contain one uppercase letter, one number, and one special character">ℹ️</i>
+
+                                                <i className="ph-duotone ph-info text-2xl ml-2 cursor-pointer" title="Password must be at least 8 characters, contain one uppercase letter, one number, and one special character"></i>
                                             </div>
                                             {!validPassword && (
                                                 <p className="mt-2 text-sm text-red-500">
@@ -265,7 +268,7 @@ const Signin = () => {
                                                     setFormdata({ email: "", code: "", password: "", username: "" })
                                                     setCodeSent(false);
                                                     setForgotPassword(false);
-                                                }}>Cancle❌
+                                                }}>Cancel❌
                                             </Link>
                                         </div>
 
@@ -287,7 +290,7 @@ const Signin = () => {
                             :
                             <form className="flex flex-col pt-3 md:pt-8" onSubmit={submit}>
                                 <div className="flex flex-col pt-4">
-                                    <div className={`relative flex overflow-hidden border-b-2 transition ${validEmail ? 'border-green-500' : 'border-red-500'}`}>
+                                    <div className={`relative flex items-center overflow-hidden border-b-2 transition ${validEmail ? 'border-green-500' : 'border-red-500'}`}>
                                         <input
                                             type="email"
                                             id="login-email"
@@ -296,7 +299,7 @@ const Signin = () => {
                                             value={formdata.email}
                                             onChange={handleEmailChange}
                                         />
-                                        <i className="ml-2 cursor-pointer" title="Must be a valid email format (e.g., user@example.com)">ℹ️</i>
+                                        <i className="ph-duotone ph-info text-2xl ml-2 cursor-pointer" title="Must be a valid email format (e.g., user@example.com)"></i>
                                     </div>
                                     {!validEmail && (
                                         <p className="mt-2 text-sm text-red-500">
@@ -306,7 +309,7 @@ const Signin = () => {
                                 </div>
                                 {signup && (
                                     <div className="flex flex-col pt-4">
-                                        <div className={`relative flex overflow-hidden border-b-2 transition ${validUsername ? 'border-green-500' : 'border-red-500'}`}>
+                                        <div className={`relative flex items-center overflow-hidden border-b-2 transition ${validUsername ? 'border-green-500' : 'border-red-500'}`}>
                                             <input
                                                 type="text"
                                                 id="username"
@@ -315,7 +318,7 @@ const Signin = () => {
                                                 value={formdata.username}
                                                 onChange={handleUsernameChange}
                                             />
-                                            <i className="ml-2 cursor-pointer" title="Username must be at least 6 characters long and contain no special characters except underscores">ℹ️</i>
+                                            <i className="ph-duotone ph-info text-2xl ml-2 cursor-pointer" title="Username must be at least 6 characters long and contain no special characters except underscores"></i>
                                         </div>
                                         {!validUsername && (
                                             <p className="mt-2 text-sm text-red-500">
@@ -325,7 +328,7 @@ const Signin = () => {
                                     </div>
                                 )}
                                 <div className="flex flex-col pt-4">
-                                    <div className={`relative flex overflow-hidden border-b-2 transition ${validPassword ? 'border-green-500' : 'border-red-500'} `}>
+                                    <div className={`relative flex items-center overflow-hidden border-b-2 transition ${validPassword ? 'border-green-500' : 'border-red-500'} `}>
                                         <input
                                             type="password"
                                             id="login-password"
@@ -334,7 +337,7 @@ const Signin = () => {
                                             value={formdata.password}
                                             onChange={handlePasswordChange}
                                         />
-                                        <i className="ml-2 cursor-pointer" title="Password must be at least 8 characters, contain one uppercase letter, one number, and one special character">ℹ️</i>
+                                        <i className="text-2xl ml-2 cursor-pointer ph-duotone ph-info" title="Password must be at least 8 characters, contain one uppercase letter, one number, and one special character"></i>
                                     </div>
                                     {!validPassword && signup && (
                                         <p className="mt-2 text-sm text-red-500">
@@ -357,7 +360,7 @@ const Signin = () => {
                                 <button
                                     type="submit"
                                     className="mt-8 w-full rounded-lg bg-gray-900 px-4 py-2 text-center text-base font-semibold text-white shadow-md ring-gray-500 ring-offset-2 transition focus:ring-2">
-                                    {signup ? "Sign up" : "Log in"}
+                                    {loading ? <Loader color="#fff" /> : (signup ? "Sign up" : "Log in")}
                                 </button>
                             </form>
                         }
