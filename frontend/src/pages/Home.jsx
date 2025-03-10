@@ -28,14 +28,14 @@ const Home = () => {
 
           <div className="w-full md:w-1/2 flex flex-col items-center justify-center h-full">
 
-            <h1 className="text-black text-lg sm:text-xl md:text-2xl flex flex-row items-center font-mono font-light tracking-wide">
+            <h1 className="text-black text-2xl sm:text-2xl md:text-3xl flex flex-row items-center font-mono font-light tracking-wide">
               Talk,Type,Connect
             </h1>
             <p className="text-black text-sm sm:text-base md:text-lg font-semibold tracking-wide mt-1 capitalize relative after:content-[''] after:absolute after:left-0 after:bottom-[-6px] after:w-0 after:h-[3px] after:bg-themeCyan after:animate-[underline-loop_3s_ease-in-out_infinite]">
               Bringing you closer, one message at a time!
             </p>
 
-            <button className="mt-7 bg-gray-200 border-2 border-gray-800 text-gray-800 px-6 py-2 text-lg font-semibold rounded-lg shadow-[inset_-4px_-4px_0px_#ccc,4px_4px_0px_#333] cursor-pointer transition-all duration-300 ease-in-out hover:shadow-[inset_-2px_-2px_0px_#ccc,2px_2px_0px_#333] active:bg-black active:border-gray-200 active:text-gray-200 active:shadow-none animate-bounce " onClick={() => navigate("/signin")}>
+            <button className="mt-7 bg-gray-200 border-2 border-gray-800 text-gray-800 px-6 py-2 text-lg font-semibold rounded-lg shadow-[inset_-4px_-4px_0px_#ccc,4px_4px_0px_#333] cursor-pointer transition-all duration-300 ease-in-out hover:shadow-[inset_-2px_-2px_0px_#ccc,2px_2px_0px_#333] active:bg-black active:border-gray-200 active:text-gray-200 active:shadow-none hover:scale-110 delay-150" onClick={() => navigate("/signin")}>
               Get Started!
             </button>
 
@@ -121,8 +121,8 @@ const Home = () => {
                 {/* Step Card */}
                 <div
                   className={`w-48 md:w-64 h-28 md:h-36 bg-gradient-to-r from-[#f46b45] to-[#eea849] text-gray-900 flex flex-col items-center justify-center rounded-md shadow-lg p-4 cursor-pointer transition-transform duration-300 ease-in-out transform
-            ${index % 2 === 0 ? "rotate-[-6deg]" : "rotate-[6deg]"}
-            group-hover:rotate-0`}
+                  ${index % 2 === 0 ? "rotate-[-6deg]" : "rotate-[6deg]"}
+                  sm:group-hover:rotate-0`}
                 >
                   <h2 className="text-lg md:text-xl font-bold text-black">{step.id}</h2>
                   <h3 className="font-semibold text-sm md:text-base text-center">{step.title}</h3>
