@@ -11,6 +11,7 @@ import { ProtectedRoute, UnProtectedRoute, UnVerifiedRoute, VerifiedRoute } from
 import Loader from './components/Loader';
 import AboutDev from './pages/AboutDev';
 import Review from './pages/Review';
+import NotFound from './pages/NotFound';
 import BasicLayout from './layout/basiclayout';
 // import BetaSignin from './Beta-Pages/signin';
 // import BetaUpdateProfileOnce from './Beta-Pages/UpdateProfileOnce';
@@ -83,6 +84,7 @@ function App() {
             <Route index path="/" element={<BasicLayout><Home /></BasicLayout>} />
             <Route index path="/aboutdev" element={<BasicLayout><AboutDev /></BasicLayout>} />
             <Route index path="/review" element={<BasicLayout><Review /></BasicLayout>} />
+            <Route index path="/*" element={<BasicLayout><NotFound /></BasicLayout>} />
 
             {/* beta ui changes to be looked at later stage */}
             {/* <Route path="/test" element={<BetaSignin />} />
@@ -93,8 +95,8 @@ function App() {
             <Route element={<UnProtectedRoute />}>
               <Route path="/signin" element={<BasicLayout><SigninPage /></BasicLayout>} />
             </Route>
-            <Route element={<ProtectedRoute />}>
 
+            <Route element={<ProtectedRoute />}>
               <Route element={<VerifiedRoute />}>
                 <Route path="/dashboard" element={
                   <SocketWrapper>
@@ -106,8 +108,8 @@ function App() {
                 <Route path="/verify/:email?" element={<VerifyEmail />} />
                 <Route path="/profile" element={<UpdateProfileOnce />} />
               </Route>
-
             </Route>
+            
           </Routes>
         </Suspense>
       </div>

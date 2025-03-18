@@ -22,7 +22,7 @@ const Home = () => {
   return (
     <div className="w-full h-full flex flex-col">
       <section className="relative w-full min-h-dvh flex justify-center items-center" id="hero">
-        <img src={heroSvg} alt="hero svg" className="absolute top-0 left-0 w-full h-full object-cover z-0" />
+        <img src={heroSvg} alt=" " className="absolute top-0 left-0 w-full h-full object-cover z-0" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-center w-[90vw] h-[80vh] bg-transparent backdrop-blur-md shadow-lg rounded-md p-2">
 
@@ -83,7 +83,7 @@ const Home = () => {
       </section>
 
       <section className="relative w-full min-h-screen flex items-center justify-center bg-[#E5E5E5]" id="getstarted">
-        <img src={getStartedBg} alt="background shape" className="absolute inset-0 w-full h-full object-cover z-0" />
+        <img src={getStartedBg} alt=" " className="absolute inset-0 w-full h-full object-cover z-0" />
         <div className="relative flex flex-col items-center w-11/12 md:w-10/12 z-10">
 
           <div className="text-center my-7">

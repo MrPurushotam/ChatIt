@@ -171,7 +171,7 @@ const Signin = () => {
         }
     };
     return (
-        <div className="w-full h-dvh mt-4 py-4 overflow-auto bg-gray-200 flex justify-center items-center">
+        <div className="w-full h-auto mt-4 py-4 pxbg-gray-200 flex justify-center items-center">
             <div className="relative w-[580px] min-h-[750px] h-auto bg-gray-100 rounded-lg shadow-lg flex flex-col justify-normal items-center px-8 my-5">
                 <div className="flex justify-center mt-6 mb-3">
                     <Link to="/" className="border-b-gray-700 border-b-4 pb-2 text-2xl font-bold text-gray-900">
@@ -359,8 +359,8 @@ const Signin = () => {
                                 }
                                 <button
                                     type="submit"
-                                    className="mt-8 w-full rounded-lg bg-gray-900 px-4 py-2 text-center text-base font-semibold text-white shadow-md ring-gray-500 ring-offset-2 transition focus:ring-2">
-                                    {loading ? <Loader color="#fff" /> : (signup ? "Sign up" : "Log in")}
+                                    className="mt-8 w-full flex justify-center items-center rounded-lg bg-gray-900 px-4 py-2 text-base font-semibold text-white shadow-md ring-gray-500 ring-offset-2 transition focus:ring-2">
+                                    {loading ? <Loader size={'xs'} color="#fff" /> : (signup ? "Sign up" : "Log in")}
                                 </button>
                             </form>
                         }
