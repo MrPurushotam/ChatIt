@@ -41,9 +41,9 @@ const Home = () => {
 
           </div>
 
-          <div className="w-full md:w-1/2 flex items-center justify-center h-full relative">
+          <div className="min-w-88 w-full md:w-1/2 flex items-center justify-center h-full relative">
             <ZoomableImage src="./sample2.webp" alt="primary dashboard ui"
-              className={"w-[100%] md:w-[170%] rounded-lg border-[5px] border-white transform hover:scale-105 transition-all duration-500 ease-in-out animate-[floatAnimation_5s_ease-in-out_infinite] shadow-[0px_0px_15px_5px_rgba(0,255,255,0.5)] rotate-[-5deg]"}
+              className={" w-[100%] md:w-[170%] rounded-lg border-[5px] border-white transform hover:scale-105 transition-all duration-500 ease-in-out animate-[floatAnimation_5s_ease-in-out_infinite] shadow-[0px_0px_15px_5px_rgba(0,255,255,0.5)] rotate-[-5deg]"}
             />
             {/* <img
               src="./sample2.webp"

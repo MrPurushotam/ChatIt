@@ -5,6 +5,7 @@ import { useSetRecoilState } from 'recoil';
 import { authenticatedAtom } from '../states/atoms';
 import ToastNotification, { showToast } from '../components/toast';
 import Loader from '../components/Loader'; // Import the Loader component
+import Logo from '../components/Logo';
 
 const Signin = () => {
 
@@ -174,10 +175,8 @@ const Signin = () => {
         <div className="w-full h-auto mt-4 py-4 pxbg-gray-200 flex justify-center items-center">
             <div className="relative w-[580px] min-h-[750px] h-auto bg-gray-100 rounded-lg shadow-lg flex flex-col justify-normal items-center px-8 my-5">
                 <div className="flex justify-center mt-6 mb-3">
-                    <Link to="/" className="border-b-gray-700 border-b-4 pb-2 text-2xl font-bold text-gray-900">
-                        Chat<span className='text-yellow-500 font-bold text-3xl'>I</span>T
+                    <Logo className="border-b-gray-700 border-b-4 capitalize" />
 
-                    </Link>
                 </div>
                 <ToastNotification />
                 <p className='block text-sm font-semibold text-gray-900 tracking-normal w-10/12 shadow-md shadow-yellow-500 p-2 rounded-md'> Welcome to ChatIt, your ultimate chat application. Sign up or log in to connect effortlessly with friends and family.</p>

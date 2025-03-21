@@ -13,6 +13,7 @@ import AboutDev from './pages/AboutDev';
 import Review from './pages/Review';
 import NotFound from './pages/NotFound';
 import BasicLayout from './layout/basiclayout';
+import PrivacyPolicy from './pages/privacy';
 // import BetaSignin from './Beta-Pages/signin';
 // import BetaUpdateProfileOnce from './Beta-Pages/UpdateProfileOnce';
 
@@ -73,7 +74,7 @@ function App() {
         {
           isInitialRender.current && !isConnectedToInternet &&
           <div className='z-20 absolute bg-white w-full h-full flex justify-center items-center flex-col space-y-2' role="alert">
-            <pre className='text-lg'>You aren't connected to internet. Please connect to interent.</pre>
+            <pre className='text-lg'>You are not connected to internet. Please connect to interent.</pre>
             <div className='w-1/2 h-auto aspect-[3/2] border-2 border-gray-300 rounded-md shadow-md overflow-hidden'>
               <img src="https://i.pinimg.com/originals/5a/65/ee/5a65ee278cd557143f05a4ba91abbfa8.gif" alt="animation" className='w-full aspect-[3/2] object-contain mx-auto' />
             </div>
@@ -84,6 +85,7 @@ function App() {
             <Route index path="/" element={<BasicLayout><Home /></BasicLayout>} />
             <Route index path="/aboutdev" element={<BasicLayout><AboutDev /></BasicLayout>} />
             <Route index path="/review" element={<BasicLayout><Review /></BasicLayout>} />
+            <Route index path="/privacypolicy" element={<BasicLayout><PrivacyPolicy /></BasicLayout>} />
             <Route index path="/*" element={<BasicLayout><NotFound /></BasicLayout>} />
 
             {/* beta ui changes to be looked at later stage */}

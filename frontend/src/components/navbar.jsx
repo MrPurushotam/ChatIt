@@ -7,6 +7,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const scrollThreshold = 350;
 
   const toggleSidebar = () => {
     setIsOpen((prev) => !prev);
@@ -15,18 +16,27 @@ const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsVisible(currentScrollY < lastScrollY.current || currentScrollY < 50);
+      if (currentScrollY > scrollThreshold) {
+        setIsVisible(currentScrollY < lastScrollY.current);
+      } else {
+        setIsVisible(true);
+      }
+      
       lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const NavLinks = [
     { name: "Home", path: "/#hero" },
     { name: "About Developer", path: "/aboutdev" },
     { name: "Feedback", path: "/review" },
+    { name: "Privacy Policy", path: "/privacypolicy" },
   ];
 
   return (
@@ -44,7 +54,7 @@ const Navbar = () => {
           {isOpen ? "✕" : "☰"}
         </button>
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden md:!flex md:items-center space-x-8">
           {NavLinks.map((link) => (
             <Link
               key={link.path}
@@ -64,7 +74,7 @@ const Navbar = () => {
       </div>
       {/* Full-Width Mobile Menu Below Navbar */}
       {isOpen && (
-        <div className="w-full bg-white shadow-md mt-1 py-4 px-6 space-y-4 md:hidden border-t-2 border-">
+        <div className="w-full bg-white shadow-md mt-1 mx-auto px-8 py-4 space-y-4 md:hidden border-t-2 ">
           {NavLinks.map((link) => (
             <Link
               key={link.path}
@@ -80,7 +90,7 @@ const Navbar = () => {
               navigate("/signin");
               setIsOpen(false);
             }}
-            className="text-left px-6 py-2 -ml-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 shadow-md"
+            className="text-left px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 shadow-md"
           >
             Get Started
           </button>
