@@ -1,5 +1,3 @@
-import React from 'react'
-
 const InitalLoader = ({ content }) => {
     return (
         <div className=' border-2 border-black absolute w-full h-full z-10 flex flex-col justify-center items-center space-y-3 bg-white/100'>

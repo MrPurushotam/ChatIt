@@ -69,10 +69,10 @@ const Home = () => {
             <KeyFeatures title={"Live Interaction Signals"} description={"See typing indicators, online status, and message read receipts."} shapeUrl={shape3}>
               <i className="ph-duotone ph-cell-signal-high text-4xl"></i>
             </KeyFeatures>
-            <KeyFeatures title={"Personalized Profiles"} description={"Customize your display name, photo, and about section."} shapeUrl={shape2}>
+            <KeyFeatures title={"Personalized Profiles"} description={"Customize your display name, photo, and about section."} shapeUrl={shape5}>
               <i className="ph-duotone ph-user-circle-gear text-4xl"></i>
             </KeyFeatures>
-            <KeyFeatures title={"Effortless Security"} description={"Quick email verification and password recovery."} shapeUrl={shape5}>
+            <KeyFeatures title={"Effortless Security"} description={"Quick email verification and password recovery."} shapeUrl={shape2}>
               <i className="ph-duotone ph-shield-chevron text-4xl"></i>
             </KeyFeatures>
             <KeyFeatures title={"Find & Chat Instantly"} description={"Search users and start conversations seamlessly."} shapeUrl={shape6}>

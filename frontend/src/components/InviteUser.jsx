@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton, FacebookIcon, TwitterIcon, WhatsappIcon } from "react-share";
 import { selectedDropDownItemAtom } from '../states/atoms';
 import { useSetRecoilState } from 'recoil';
-import { useLocation, useNavigate } from 'react-router-dom';
 
 const InviteUser = () => {
-    const inviteLink = window.location.href.split("dashboard")[0]+"signin";
+    const inviteLink = window.location.href.split("dashboard")[0];
     const [copied, setCopied] = useState(false);
     const setSelectedDropdownItem = useSetRecoilState(selectedDropDownItemAtom);
     const customMessage = import.meta.env.VITE_INVITE_MESSAGE || "Hey there! 🎉 Come join me on ChatIt, where every chat is a chance to spark joy and fun! Let’s create some unforgettable memories together!";

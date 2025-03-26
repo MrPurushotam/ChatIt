@@ -1,26 +1,26 @@
 import { useState } from "react";
 import initalizeApi from "../../utils/Api";
 import ToastNotification, { showToast } from "../toast";
-import Loader from "../Loader"; // Import the Loader component
+import Loader from "../Loader";
 
-const FeedbackForm = ({ username, id }) => {
+const FeedbackForm = () => {
     const api = initalizeApi();
     const [formData, setFormData] = useState({
-        name: username || "",
-        feedbackAbout: "",
+        fullname: "",
+        subject: "",
         description: "",
         image: null,
     });
     const [feedbackAboutWordCount, setFeedbackAboutWordCount] = useState(0);
     const [descriptionWordCount, setDescriptionWordCount] = useState(0);
-    const [loading, setLoading] = useState(false); // Add loading state
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        if (name === "feedbackAbout") {
+        if (name === "subject") {
             const charCount = value.length;
-            if (charCount > 500) return;
+            if (charCount > 200) return;
             setFeedbackAboutWordCount(charCount);
         }
 
@@ -39,14 +39,18 @@ const FeedbackForm = ({ username, id }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true); // Set loading to true when form is submitted
+        setLoading(true);
         console.log("Form submitted:", formData);
         try {
             const res = await api.post("/review", formData);
+            if (!res.data.status) {
+                showToast(res.data.message, "error");
+            }
+            showToast(res.data.message, "success");
         } catch (error) {
             showToast(error.message, "error");
         } finally {
-            setLoading(false); // Set loading to false after request is complete
+            setLoading(false);
         }
     };
 
@@ -58,20 +62,19 @@ const FeedbackForm = ({ username, id }) => {
                     Name:
                     <input
                         type="text"
-                        name="name"
+                        name="fullname"
                         disabled={loading}
-                        value={formData.name}
+                        value={formData.fullname}
                         onChange={handleChange}
                         className="border p-2 w-full"
                         required
-                        readOnly={!!id}
                     />
                 </label>
                 <label>
-                    Feedback About (Max 500 Characters):
+                    Subject (Max 200 Characters):
                     <textarea
-                        name="feedbackAbout"
-                        value={formData.feedbackAbout}
+                        name="subject"
+                        value={formData.subject}
                         onChange={handleChange}
                         className="border p-2 w-full"
                         disabled={loading}
@@ -91,7 +94,7 @@ const FeedbackForm = ({ username, id }) => {
                     ></textarea>
                     <p className="text-sm text-gray-600">{descriptionWordCount}/1200 characters</p>
                 </label>
-                <label>
+                {/* <label>
                     Upload Image (optional):
                     <input
                         type="file"
@@ -100,9 +103,9 @@ const FeedbackForm = ({ username, id }) => {
                         className="border p-2 w-full"
                         disabled={loading}
                     />
-                </label>
+                </label> */}
                 <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center justify-center">
-                    {loading ? <Loader color="white" /> : "Submit "}
+                    {loading ? <Loader color="white" size="sm" /> : "Submit "}
                 </button>
             </form>
         </>

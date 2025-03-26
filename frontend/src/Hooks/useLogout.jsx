@@ -44,7 +44,7 @@ export const useLogout = () => {
                 resetLoggedUser();
                 resetFetchUserDetailsSelector();
                 window.localStorage.removeItem("token");
-                navigate("/signin");
+                navigate("/");
                 console.log("Logged out successfully");
             } else {
                 console.error("Logout failed");

@@ -80,7 +80,7 @@ function App() {
             </div>
           </div>
         }
-        <Suspense fallback={<Loader />}>
+        <Suspense fallback={<Loader className="absolute top-[50%] left-[50%] " />}>
           <Routes>
             <Route index path="/" element={<BasicLayout><Home /></BasicLayout>} />
             <Route index path="/aboutdev" element={<BasicLayout><AboutDev /></BasicLayout>} />
