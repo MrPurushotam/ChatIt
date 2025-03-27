@@ -1,6 +1,6 @@
 import ChatInterface from "../components/ChatInterface";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { activeChatAtom, isConnectedAtom, viewImageAtom } from "../states/atoms";
+import { useRecoilValue } from "recoil";
+import { activeChatAtom, isConnectedAtom } from "../states/atoms";
 import Sidebar from "../components/Sidebar";
 import InitalLoader from "../components/InitalLoader";
 import ViewImage from "../components/ViewImage";
@@ -8,7 +8,6 @@ import ViewImage from "../components/ViewImage";
 
 const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
   const currentTextingUser = useRecoilValue(activeChatAtom);
-  const [viewImage, setViewImage] = useRecoilState(viewImageAtom)
   const isConnected = useRecoilValue(isConnectedAtom);
   return (
     <>
@@ -20,7 +19,7 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
         <div className="w-full sm:w-full md:w-full lg:w-[1500px] h-full bg-white border-x-2 border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-[4fr_9fr] h-full">
             <div className={`hidden sm:block ${currentTextingUser ? 'hidden md:block' : 'block'} overflow-hidden`}>
-              <Sidebar fetchChats={fetchChats} hasMoreChats = {hasMoreChats} />
+              <Sidebar fetchChats={fetchChats} hasMoreChats={hasMoreChats} />
             </div>
             <div className=" static h-full border-l-2 border-gray-300">
               {
@@ -28,12 +27,12 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
                   <ChatInterface socket={socket} loggedUser={loggedUser} />
                   :
                   <div className="flex items-center justify-center h-full w-full p-4 text-center">
-                    <p className="text-lg md:text-xl">ChatIt chat here at your own risk</p>
+                    <p className="text-lg md:text-xl font-mono font-light tracking-tighter">Chatit chat here at your own risk.</p>
                   </div>
               }
             </div>
           </div>
-          <ViewImage/>
+          <ViewImage />
         </div>
       </div>
     </>

@@ -8,49 +8,55 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  password      String
-  username      String    @unique
-  displayName   String
-  profile       String?
-  about         String    @default("Hi I am new here")
-  isVerified    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastOnline    DateTime  @default(now())
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String
+  username         String    @unique
+  displayName      String
+  profile          String?
+  about            String    @default("Hi I am new here")
+  isVerified       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastOnline       DateTime  @default(now())
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
-  chatsAsUser1  Chat[]    @relation("User1Chats")
-  chatsAsUser2  Chat[]    @relation("User2Chats")
+  chatsAsUser1     Chat[]    @relation("User1Chats")
+  chatsAsUser2     Chat[]    @relation("User2Chats")
+  reviews          Review[]
+
+  @@index([id])
 }
 
 model Chat {
-  id            String    @id @default(uuid())
-  user1Id       String
-  user2Id       String
-  lastMessage   String?
-  lastMessageAt DateTime?
-  lastMessageSenderId     String?   
-  unreadCount   Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user1         User      @relation("User1Chats", fields: [user1Id], references: [id])
-  user2         User      @relation("User2Chats", fields: [user2Id], references: [id])
-  messages      Message[]
+  id                  String    @id @default(uuid())
+  user1Id             String
+  user2Id             String
+  lastMessage         String?
+  lastMessageAt       DateTime?
+  lastMessageSenderId String?
+  unreadCount         Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  user1               User      @relation("User1Chats", fields: [user1Id], references: [id])
+  user2               User      @relation("User2Chats", fields: [user2Id], references: [id])
+  messages            Message[]
+
+  @@index([user2Id, user1Id, id])
 }
 
 model Message {
-  id          String      @id @default(uuid())
+  id          String        @id @default(uuid())
   chatId      String
   senderId    String
   receiverId  String
   content     String
-  sentAt      DateTime    @default(now())
+  sentAt      DateTime      @default(now())
+  syncStatus  Boolean       @default(true)
   status      MessageStatus @default(SENT)
-  chat        Chat        @relation(fields: [chatId], references: [id])
-  sender      User        @relation("SentMessages", fields: [senderId], references: [id])
-  receiver    User        @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  chat        Chat          @relation(fields: [chatId], references: [id])
+  sender      User          @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User          @relation("ReceivedMessages", fields: [receiverId], references: [id])
   attachments Attachment[]
 }
 
@@ -69,4 +75,25 @@ enum MessageStatus {
   SENT
   DELIVERED
   READ
+}
+
+model Review {
+  id          String     @id @default(nanoid())
+  description String
+  subject     String
+  type        ReviewType @default(FEEDBACK)
+  fullname    String?
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+enum ReviewType {
+  REVIEW
+  FEEDBACK
+  BUG
+  SUGGESTION
 }
