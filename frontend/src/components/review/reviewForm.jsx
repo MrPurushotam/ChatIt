@@ -9,15 +9,13 @@ const FeedbackForm = () => {
         fullname: "",
         subject: "",
         description: "",
-        image: null,
     });
     const [feedbackAboutWordCount, setFeedbackAboutWordCount] = useState(0);
     const [descriptionWordCount, setDescriptionWordCount] = useState(0);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-
+        const { name, value } = e.target
         if (name === "subject") {
             const charCount = value.length;
             if (charCount > 200) return;
@@ -33,24 +31,29 @@ const FeedbackForm = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleImageChange = (e) => {
-        setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
-    };
+    // const handleImageChange = (e) => {
+    //     setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
+    // };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        console.log("Form submitted:", formData);
         try {
             const res = await api.post("/review", formData);
-            if (!res.data.status) {
+            if (!res.data.success) {
                 showToast(res.data.message, "error");
+            }else{
+                showToast(res.data.message, "success");
             }
-            showToast(res.data.message, "success");
         } catch (error) {
             showToast(error.message, "error");
         } finally {
             setLoading(false);
+            setFormData({        
+                fullname: "",
+                subject: "",
+                description: "",
+            })
         }
     };
 
@@ -105,7 +108,7 @@ const FeedbackForm = () => {
                     />
                 </label> */}
                 <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center justify-center">
-                    {loading ? <Loader color="white" size="sm" /> : "Submit "}
+                    {loading ? <Loader color="white" size="xs" /> : "Submit "}
                 </button>
             </form>
         </>
