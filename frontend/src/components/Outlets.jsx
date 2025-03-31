@@ -3,7 +3,6 @@ import useLoggedUser from "../Hooks/useLoggedUser";
 import { useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { loggedUserAtom } from "../states/atoms";
-import Loader from "./Loader";
 
 export const ProtectedRoute = () => {
   let tokenExists = window.localStorage.getItem('token');

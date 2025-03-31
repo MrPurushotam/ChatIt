@@ -1,5 +1,5 @@
 
-function storeVerificationCode(map ,email, code, expiryTime = 150000) {
+function storeVerificationCode(map, email, code, expiryTime = 150000) {
     const expire = Date.now() + expiryTime;
     map.set(email, { code, expire });
     setTimeout(() => {
@@ -7,7 +7,7 @@ function storeVerificationCode(map ,email, code, expiryTime = 150000) {
     }, expiryTime)
 }
 
-function storeForgotPasswordCode(map,email, code, expiryTime = 150000) {
+function storeForgotPasswordCode(map, email, code, expiryTime = 150000) {
     const expire = Date.now() + expiryTime;
     map.set(email, { code, expire });
     setTimeout(() => {
@@ -18,19 +18,19 @@ function storeForgotPasswordCode(map,email, code, expiryTime = 150000) {
 function validateVerificationCode(map, email, code) {
     const data = map.get(email);
     if (!data) {
-        return { success: false, message: "Verification code has expired or not generated." };
+        return { success: false, message: "Verification code has expired or not generated.", verified: false };
     }
     if (data.expire < Date.now()) {
-        return { success: false, message: "Verification code has expired." };
+        return { success: false, message: "Verification code has expired.", verified: false };
     }
     if (data.code === code) {
-        return { success: true, message: "Verfication code is valid." }
+        return { success: true, message: "Verfication code is valid.", verified: true }
     }
-    return { success: false, message: "Invalid verification code." };
+    return { success: false, message: "Invalid verification code.", verified: false };
 }
 
 
-function validateForgotPasswordCode(map,email, code) {
+function validateForgotPasswordCode(map, email, code) {
     const data = map.get(email);
     if (!data) {
         return { success: false, message: "Verification code has expired or not generated." };
@@ -44,11 +44,11 @@ function validateForgotPasswordCode(map,email, code) {
     return { success: false, message: "Invalid verification code." };
 }
 
-function deleteCodePostUpdate(map,email){
-    if(map.get(email)){
+function deleteCodePostUpdate(map, email) {
+    if (map.get(email)) {
         map.delete(email);
     }
 
 }
 
-module.exports= {storeForgotPasswordCode,validateForgotPasswordCode,validateVerificationCode,storeVerificationCode,deleteCodePostUpdate};
+module.exports = { storeForgotPasswordCode, validateForgotPasswordCode, validateVerificationCode, storeVerificationCode, deleteCodePostUpdate };

@@ -4,6 +4,8 @@ import { activeChatAtom, isConnectedAtom } from "../states/atoms";
 import Sidebar from "../components/Sidebar";
 import InitalLoader from "../components/InitalLoader";
 import ViewImage from "../components/ViewImage";
+import { Link } from "react-router-dom";
+import Logo from "../components/Logo";
 // THOUGHT: I am thinking to add a temp page or loader just like whatsapp which will run untill chats are fetched , chatList is fetched & socket is connected successfully. Post that the chat window shoudl appear any error while fetching or connnecting any thing then it shall stop and logout! 
 
 const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
@@ -14,6 +16,20 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
       {isConnected === 'inital-connect' &&
         <InitalLoader content="Please wait web is loading." />
       }
+      <div className="w-full h-full flex flex-col justify-center items-center md:hidden">
+        <Logo />
+        <span className="font-mono text-lg text-wrap w-3/5 text-center">Hey please switch to desktop mode. We don't want to spoil your experience Hehe😅</span>
+        <Link
+          to="/"
+          className="relative px-4 py-1 font-semibold text-blue-600 group"
+        >
+          Home
+          <span className="absolute left-0 bottom-0 w-full h-1 bg-themeOrangeDarker 
+                   transform -skew-x-12 transition-all duration-300 scale-0 
+                   group-hover:scale-100 group-hover:skew-x-0">
+          </span>
+        </Link>
+      </div >
 
       <div className="flex justify-center w-full h-screen bg-gray-200">
         <div className="w-full sm:w-full md:w-full lg:w-[1500px] h-full bg-white border-x-2 border-gray-100">

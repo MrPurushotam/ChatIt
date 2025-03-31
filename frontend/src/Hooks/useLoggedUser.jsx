@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useRecoilState, useRecoilValueLoadable } from 'recoil';
 import { fetchUserDetailSelector, loggedUserAtom } from '../states/atoms';
-import { useLogout } from './useLogout';
 import { useNavigate } from 'react-router-dom';
 
 const useLoggedUser = () => {
@@ -12,17 +11,17 @@ const useLoggedUser = () => {
 
   useEffect(() => {
     if (userDetailsLoadable.state === 'hasValue') {
-      if(userDetailsLoadable.contents==="Jwt Expired"){
+      if (userDetailsLoadable.contents === "Jwt Expired") {
         window.localStorage.removeItem("token");
-        navigate("/signin")
-      }else{
+        navigate("/signin", { replace: true })
+      } else {
         setLoggedUser(userDetailsLoadable.contents);
       }
     } else if (userDetailsLoadable.state === 'hasError') {
       console.error('Error loading user details:', userDetailsLoadable.contents);
       setLoggedUser(null);
     }
-  }, [userDetailsLoadable, setLoggedUser]);
+  }, [userDetailsLoadable, setLoggedUser, navigate]);
 
   return loggedUser;
 };

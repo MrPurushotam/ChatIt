@@ -8,12 +8,12 @@ const prisma = require("../utils/PrismaInit")
 const { ProfileUpload } = require("../middleware/multer")
 const { storeVerificationCode, storeForgotPasswordCode, validateForgotPasswordCode, validateVerificationCode, deleteCodePostUpdate } = require("../utils/verifyCode");
 const Mailer = require("../utils/EmailService");
-const { loginLimit, OtpLimit, forgotPasswordLimit } = require("../utils/RateLimitConfig");
+const { loginLimit, OtpLimit, forgotPasswordLimit, GenerateOtpLimit } = require("../utils/RateLimitConfig");
 const router = Router();
 const verificationCodeMap = new Map();
 const forgotPasswordCodeMap = new Map();
 
-router.post('/login',loginLimit, async (req, res) => {
+router.post('/login', loginLimit, async (req, res) => {
     try {
         const { email, password } = req.body
         if (!(email?.trim()) || !(password?.trim())) {
@@ -31,10 +31,10 @@ router.post('/login',loginLimit, async (req, res) => {
         if (!CorrectPassword) {
             return res.status(400).json({ message: "Incorrect passowrd.", success: false })
         }
-        const token = createToken({ id: user.id, username: user.username, displayName: user.displayName, profile: user.profile, about: user.about , isVerified:user.isVerified })
+        const token = createToken({ id: user.id, username: user.username, displayName: user.displayName, profile: user.profile, about: user.about, isVerified: user.isVerified })
         // res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
         // res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
-        res.status(200).json({ message: "Logged in.", success: true ,token})
+        res.status(200).json({ message: "Logged in.", success: true, token })
     } catch (error) {
         console.log("Error ", error.message)
         return res.status(500).json({ message: "Internal error occured.", success: false })
@@ -70,7 +70,7 @@ router.post('/signup', async (req, res) => {
                 displayName: username.trim()
             }
         });
-        const token = createToken({ id: newUser.id, username: newUser.username, displayName: newUser.displayName, profile: newUser.profile, about: newUser.about ,isVerified:newUser.isVerified})
+        const token = createToken({ id: newUser.id, username: newUser.username, displayName: newUser.displayName, profile: newUser.profile, about: newUser.about, isVerified: newUser.isVerified })
         // res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production',maxAge: 259200000 ,sameSite:"none"})
         // res.cookie("authenticate", true, {httpOnly:false,secure:process.env.NODE_ENV === 'production',maxAge: 259200000,sameSite:"none"})
         // Create verification token
@@ -79,12 +79,12 @@ router.post('/signup', async (req, res) => {
         // send token over mail
         const mailer = new Mailer();
         const emailSent = await mailer.sendVerificationEmail(email, verificationCode, duration = 15);
-        let additionalResponseObject={}
+        let additionalResponseObject = {}
         if (!emailSent) {
-            additionalResponseObject.emailError=true;
-            additionalResponseObject.emailErrorMessage="Some error occured while sending email.";
+            additionalResponseObject.emailError = true;
+            additionalResponseObject.emailErrorMessage = "Some error occured while sending email.";
         }
-        res.status(200).json({ message: "User created.", success: true ,...additionalResponseObject,token })
+        res.status(200).json({ message: "User created.", success: true, ...additionalResponseObject, token })
     } catch (error) {
         console.log("Error ", error.message)
         return res.status(500).json({ message: "Internal error occured.", success: false })
@@ -92,7 +92,7 @@ router.post('/signup', async (req, res) => {
 })
 
 
-router.post("/forgotpassword",forgotPasswordLimit, async (req, res) => {
+router.post("/forgotpassword", forgotPasswordLimit, async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) {
@@ -170,7 +170,7 @@ router.get("/", async (req, res) => {
                 id: req.userId
             }, select: {
                 id: true,
-                email:true,
+                email: true,
                 isVerified: true,
                 lastOnline: true,
                 profile: true,
@@ -356,7 +356,7 @@ router.post("/profile", ProfileUpload, async (req, res) => {
     }
 })
 
-router.post("/verify",OtpLimit, async (req, res) => {
+router.post("/verify", GenerateOtpLimit, async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) {
@@ -372,6 +372,7 @@ router.post("/verify",OtpLimit, async (req, res) => {
         storeVerificationCode(verificationCodeMap, email, verificationCode);
         const mailer = new Mailer();
         const emailSent = await mailer.sendVerificationEmail(email, verificationCode, duration = 15);
+        console.log(Date.now().toLocaleString().toString(), ": Otp generated at send to ", email)
         if (!emailSent) {
             return res.status(500).json({ message: "Failed to send verification email.", success: false });
         }
@@ -382,7 +383,7 @@ router.post("/verify",OtpLimit, async (req, res) => {
     }
 })
 
-router.post("/verifyemail", async (req, res) => {
+router.post("/verifyemail", OtpLimit, async (req, res) => {
     try {
         const { email, code } = req.body
         if (!email) {
@@ -396,12 +397,24 @@ router.post("/verifyemail", async (req, res) => {
         }
         const status = validateVerificationCode(verificationCodeMap, email, parseInt(code));
         if (status.success) {
-            await prisma.user.update({
+            const user = await prisma.user.update({
                 where: { email },
-                data: { isVerified: true }
+                data: { isVerified: true },
+                select: {
+                    id: true,
+                    username: true,
+                    displayName: true,
+                    profile: true,
+                    about: true,
+                    isVerified: true
+                }
             })
             deleteCodePostUpdate(verificationCodeMap, email);
-            return res.status(200).json({ ...status });
+
+            const token = createToken({ id: user.id, username: user.username, displayName: user.displayName, profile: user.profile, about: user.about, isVerified: user.isVerified })
+            console.log(Date.now().toLocaleString().toString(), ": User verified with email id ", email)
+
+            return res.status(200).json({ ...status, token });
         } else {
             return res.status(400).json({ ...status });
         }
