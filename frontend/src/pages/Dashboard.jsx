@@ -16,7 +16,7 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
       {isConnected === 'inital-connect' &&
         <InitalLoader content="Please wait web is loading." />
       }
-      <div className="w-full h-full flex flex-col justify-center items-center md:hidden">
+      <div className="absolute z-50 bg-themeGrey top-0 w-full h-full flex flex-col justify-center items-center md:hidden">
         <Logo />
         <span className="font-mono text-lg text-wrap w-3/5 text-center">Hey please switch to desktop mode. We don't want to spoil your experience Hehe😅</span>
         <Link
@@ -33,7 +33,7 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
 
       <div className="flex justify-center w-full h-screen bg-gray-200">
         <div className="w-full sm:w-full md:w-full lg:w-[1500px] h-full bg-white border-x-2 border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-[4fr_9fr] h-full">
+          <div className="grid grid-cols-1 md:grid-cols-[4fr_8fr] h-full">
             <div className={`hidden sm:block ${currentTextingUser ? 'hidden md:block' : 'block'} overflow-hidden`}>
               <Sidebar fetchChats={fetchChats} hasMoreChats={hasMoreChats} />
             </div>
@@ -43,7 +43,7 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
                   <ChatInterface socket={socket} loggedUser={loggedUser} />
                   :
                   <div className="flex items-center justify-center h-full w-full p-4 text-center">
-                    <p className="text-lg md:text-xl font-mono font-light tracking-tighter">Chatit chat here at your own risk.</p>
+                    <p className="text-lg md:text-xl font-serif font-semibold tracking-wide">Stay happy, Stay connected.</p>
                   </div>
               }
             </div>

@@ -44,7 +44,7 @@ const Sidebar = ({hasMoreChats,fetchChats}) => {
                 {selectedDropdownItem && <SettingsInterface />}
                 {!selectedDropdownItem &&
                     <>
-                        <nav className="sticky top-0">
+                        <nav className="sticky top-0 z-10"> {/* Increased z-index */}
                             <div className="bg-white px-2 py-3 border-b-2 border-gray-100">
                                 <Searchbar />
                             </div>
@@ -58,7 +58,7 @@ const Sidebar = ({hasMoreChats,fetchChats}) => {
                             }
                         </nav>
 
-                        <div className="h-full overflow-x-hidden overflow-y-auto" ref={dropZoneRef}>
+                        <div className="h-full overflow-x-hidden overflow-y-auto z-0" ref={dropZoneRef}>
                             {/* list users here */}
                             {globalLoading === "fetching-chats" ?
                                 <div className="sticky h-full w-full flex justify-center items-center">

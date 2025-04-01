@@ -56,6 +56,26 @@
   }
 }
 
+/* scrollbar */
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px; /* Make scrollbar thin */
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Subtle track color */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #b0b0b0; /* Gray thumb */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888; /* Darker on hover */
+}
+
 /* atoms animation */
 .custom-cursor {
   pointer-events: none;

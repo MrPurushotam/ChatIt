@@ -6,7 +6,7 @@ import OptionsDropdown from "./OptionsDropdown";
 import initalizeApi from "../utils/Api";
 
 const Searchbar = () => {
-    const api =initalizeApi();
+    const api = initalizeApi();
     const [searchUser, setSearchUser] = useState("");
     const [users, setUsers] = useState([]);
     const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -42,7 +42,7 @@ const Searchbar = () => {
     }, [searchUser, handleSearch]);
 
     return (
-        <div className="w-full"
+        <div className="w-full z-20"
             onKeyDown={(e) => {
                 if (e.key === "Escape") {
                     setSearchUser("")
@@ -69,7 +69,7 @@ const Searchbar = () => {
             </form>
 
             {users.length > 0 && (
-                <div className="absolute left-0 sm:left-2 right-0 sm:right-2 max-h-[60vh] sm:max-h-96 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg z-10" >
+                <div className="absolute !z-[100] left-0 w-4/5 sm:left-2 right-0 sm:right-2 max-h-[60vh] sm:max-h-96 overflow-y-auto bg-white border border-gray-300 rounded-sm shadow-lg scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thumb-rounded-full" >
                     <ul className="divide-y divide-gray-100">
                         {users.map((user) => {
                             const date = new Date(user?.lastMessageAt).toLocaleTimeString('en-US', {

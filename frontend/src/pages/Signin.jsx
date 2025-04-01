@@ -23,6 +23,8 @@ const Signin = () => {
     const [codeSent, setCodeSent] = useState(false); // Track if code was sent
     const [resendCooldown, setResendCooldown] = useState(0);
     const [loading, setLoading] = useState(false); // State for loading
+    const [showPassword, setShowPassword] = useState(false); // State for password visibility toggle
+    const [showNewPassword, setShowNewPassword] = useState(false); // State for new password visibility toggle in forgot password flow
 
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,7 +42,7 @@ const Signin = () => {
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         if (!emailRegex.test(formdata.email)) {
-            alert("Please enter a valid email");
+            showToast("Please enter a valid email", "error");
             return;
         }
 
@@ -111,11 +113,6 @@ const Signin = () => {
             showToast("Please correct the fields with errors.", "error");
             return;
         }
-
-        if (signup) {
-            alert("Are you sure about your password? It's " + formdata.password);
-        }
-
         setLoading(true); // Set loading to true
         try {
             const endpoint = signup ? "/user/signup" : "/user/login";
@@ -238,15 +235,23 @@ const Signin = () => {
 
                                         <div className="flex flex-col pt-4">
                                             <div className={`focus-within:border-b-gray-500 relative flex items-center overflow-hidden border-b-2 transition ${validPassword ? 'border-green-500' : 'border-red-500'}`}>
-                                                <input
-                                                    type="password"
-                                                    id="newpassword"
-                                                    className="w-full flex-1 appearance-none bg-white px-4 py-2 text-base text-gray-700 placeholder-gray-400 focus:outline-none"
-                                                    placeholder="New Password"
-                                                    value={formdata.password}
-                                                    onChange={handlePasswordChange}
-                                                />
-
+                                                <div className="relative w-full">
+                                                    <input
+                                                        type={showNewPassword ? "text" : "password"}
+                                                        id="newpassword"
+                                                        className="w-full flex-1 appearance-none bg-white px-4 py-2 text-base text-gray-700 placeholder-gray-400 focus:outline-none pr-12"
+                                                        placeholder="New Password"
+                                                        value={formdata.password}
+                                                        onChange={handlePasswordChange}
+                                                    />
+                                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
+                                                        <i
+                                                            className={`ph-duotone ${showNewPassword ? 'ph-eye-slash' : 'ph-eye'} text-xl cursor-pointer text-gray-500 hover:text-gray-700`}
+                                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                                            title="Toggle password visibility"
+                                                        ></i>
+                                                    </div>
+                                                </div>
                                                 <i className="ph-duotone ph-info text-2xl ml-2 cursor-pointer" title="Password must be at least 8 characters, contain one uppercase letter, one number, and one special character"></i>
                                             </div>
                                             {!validPassword && (
@@ -328,14 +333,23 @@ const Signin = () => {
                                 )}
                                 <div className="flex flex-col pt-4">
                                     <div className={`relative flex items-center overflow-hidden border-b-2 transition ${validPassword ? 'border-green-500' : 'border-red-500'} `}>
-                                        <input
-                                            type="password"
-                                            id="login-password"
-                                            className="w-full flex-1 appearance-none bg-white px-4 py-2 text-base text-gray-700 placeholder-gray-400 focus:outline-none"
-                                            placeholder="Password"
-                                            value={formdata.password}
-                                            onChange={handlePasswordChange}
-                                        />
+                                        <div className="relative w-full">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                id="login-password"
+                                                className="w-full flex-1 appearance-none bg-white px-4 py-2 text-base text-gray-700 placeholder-gray-400 focus:outline-none pr-12"
+                                                placeholder="Password"
+                                                value={formdata.password}
+                                                onChange={handlePasswordChange}
+                                            />
+                                            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
+                                                <i
+                                                    className={`ph-duotone ${showPassword ? 'ph-eye-slash' : 'ph-eye'} text-xl cursor-pointer text-gray-500 hover:text-gray-700`}
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    title="Toggle password visibility"
+                                                ></i>
+                                            </div>
+                                        </div>
                                         <i className="text-2xl ml-2 cursor-pointer ph-duotone ph-info" title="Password must be at least 8 characters, contain one uppercase letter, one number, and one special character"></i>
                                     </div>
                                     {!validPassword && signup && (
