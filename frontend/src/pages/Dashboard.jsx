@@ -6,11 +6,69 @@ import InitalLoader from "../components/InitalLoader";
 import ViewImage from "../components/ViewImage";
 import { Link } from "react-router-dom";
 import Logo from "../components/Logo";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+import { useEffect, useState } from "react";
+
 // THOUGHT: I am thinking to add a temp page or loader just like whatsapp which will run untill chats are fetched , chatList is fetched & socket is connected successfully. Post that the chat window shoudl appear any error while fetching or connnecting any thing then it shall stop and logout! 
 
 const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
   const currentTextingUser = useRecoilValue(activeChatAtom);
   const isConnected = useRecoilValue(isConnectedAtom);
+  const [_, setHasTakenTour] = useState(false);
+
+  useEffect(() => {
+    const tourStatus = window.localStorage.getItem('dashboardTourTaken');
+    if (!tourStatus && !isConnected) {
+      const driverObj = driver({
+        showProgress: true,
+        steps: [
+          {
+            element: "#sidebar",
+            popover: {
+              title: "Chat List",
+              description: "Here you can see all your conversations and start new ones",
+              side: "right",
+              align: "start"
+            }
+          },
+          {
+            element: "#user-list-type",
+            popover: {
+              title: "Toggle user list.",
+              description: "Here you can toggle user lists according to chat status.",
+              side: "right",
+              align: "start"
+            }
+          },
+          {
+            element: "#searchbar",
+            popover: {
+              title: "Search User here",
+              description: "Search for user to start a new converstion, click on the user and start chatting",
+              side: "bottom",
+              align: "end"
+            }
+          },
+          {
+            element: "#settings",
+            popover: {
+              title: "Settings",
+              description: "Access all the various type of settings here.",
+              side: "bottom",
+              align: "end"
+            }
+          }
+        ],
+        onDestroyed: () => {
+          setHasTakenTour(true);
+          localStorage.setItem('dashboardTourTaken', true);
+        }
+      });
+      driverObj.drive();
+    }
+  }, [isConnected])
+
   return (
     <>
       {isConnected === 'inital-connect' &&

@@ -38,7 +38,7 @@ const OptionsDropdown = () => {
 
     return (
         <div className='dropdown' ref={dropDownRef}>
-            <i className={`ph-duotone ph-gear text-3xl p-2 cursor-pointer transition-transform transform hover:scale-110`}
+            <i id="settings" className={`ph-duotone ph-gear text-3xl p-2 cursor-pointer transition-transform transform hover:scale-110`}
                 onClick={() => setIsOpen(prev => !prev)}>
             </i>
             {isOpen &&

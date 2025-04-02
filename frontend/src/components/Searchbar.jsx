@@ -59,6 +59,7 @@ const Searchbar = () => {
                         value={searchUser}
                         onChange={(e) => setSearchUser(e.target.value)}
                         autoFocus={true}
+                        id="searchbar"
                         className="w-full py-1.5 sm:py-2 pl-8 sm:pl-10 pr-2 sm:pr-4 text-sm sm:text-base text-gray-800 bg-white border-2 border-gray-300 placeholder:text-gray-700 rounded-md focus:outline-none focus:border-blue-500"
                     />
                     <i className="ph-duotone ph-magnifying-glass text-gray-700 absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-lg sm:text-xl"></i>

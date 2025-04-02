@@ -7,7 +7,7 @@ import { activeChatAtom, chatsAtom, globalLoadingAtom, isUserConnectedToInternet
 import Loader from "./Loader";
 import InfiniteScroll from "react-infinite-scroller";
 
-const Sidebar = ({hasMoreChats,fetchChats}) => {
+const Sidebar = ({ hasMoreChats, fetchChats }) => {
     const [listChats, setListChats] = useRecoilState(listChatsAtom);
     const selectedDropdownItem = useRecoilValue(selectedDropDownItemAtom);
     const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);
@@ -37,7 +37,7 @@ const Sidebar = ({hasMoreChats,fetchChats}) => {
         const selectedChat = chats.find(chat => chat.id === id);
         setCurrentTextingUser(selectedChat);
     }
-// FIXME: Test the code if it works?
+    // FIXME: Test the code if it works?
     return (
         <>
             <div className="h-full flex flex-col overflow-hidden">
@@ -48,17 +48,16 @@ const Sidebar = ({hasMoreChats,fetchChats}) => {
                             <div className="bg-white px-2 py-3 border-b-2 border-gray-100">
                                 <Searchbar />
                             </div>
-                            {
-                                <div className="bg-white px-2 py-3 shadow-sm space-x-3 text-sm">
-                                    <span className={`px-2 py-1 border-2 w-fit rounded-full cursor-default select-none ${listChats === "all" && "bg-[#ee6143] text-white"} sm:px-3 sm:py-1 md:px-4 md:py-1 lg:px-3 lg:py-1`}
-                                        onClick={() => setListChats("all")}>All</span>
-                                    <span className={`px-2 py-1 border-2 w-fit rounded-full cursor-default select-none ${listChats === "unread" && "bg-[#ee6143] text-white"} sm:px-3 sm:py-1 md:px-4 md:py-1 lg:px-3 lg:py-1`}
-                                        onClick={() => setListChats("unread")}>Unread</span>
-                                </div>
-                            }
+
+                            <div className="bg-white px-2 py-3 shadow-sm space-x-3 text-sm" id="user-list-type">
+                                <span className={`px-2 py-1 border-2 w-fit rounded-full cursor-default select-none ${listChats === "all" && "bg-[#ee6143] text-white"} sm:px-3 sm:py-1 md:px-4 md:py-1 lg:px-3 lg:py-1`}
+                                    onClick={() => setListChats("all")}>All</span>
+                                <span className={`px-2 py-1 border-2 w-fit rounded-full cursor-default select-none ${listChats === "unread" && "bg-[#ee6143] text-white"} sm:px-3 sm:py-1 md:px-4 md:py-1 lg:px-3 lg:py-1`}
+                                    onClick={() => setListChats("unread")}>Unread</span>
+                            </div>
                         </nav>
 
-                        <div className="h-full overflow-x-hidden overflow-y-auto z-0" ref={dropZoneRef}>
+                        <div className="h-full overflow-x-hidden overflow-y-auto z-0" id="sidebar" ref={dropZoneRef}>
                             {/* list users here */}
                             {globalLoading === "fetching-chats" ?
                                 <div className="sticky h-full w-full flex justify-center items-center">
@@ -84,11 +83,11 @@ const Sidebar = ({hasMoreChats,fetchChats}) => {
                             }
                             <InfiniteScroll
                                 pageStart={sortChatsInDesc.length}
-                                loadMore={()=>{fetchChats(sortChatsInDesc.length,sortChatsInDesc.length+20)}}
+                                loadMore={() => { fetchChats(sortChatsInDesc.length, sortChatsInDesc.length + 20) }}
                                 hasMore={hasMoreChats}
                                 loader={<Loader className=" flex justify-center overflow-hidden" />}
                                 useWindow={false}
-                                getScrollParent={() => dropZoneRef.current}     
+                                getScrollParent={() => dropZoneRef.current}
                             >
 
                                 {sortChatsInDesc?.map((chat) => (
