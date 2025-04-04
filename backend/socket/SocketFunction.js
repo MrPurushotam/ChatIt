@@ -107,8 +107,11 @@ async function handleMessage(io, socket, ConnectedUser, messageObject, callback)
 }
 
 const handleFileMessage = async (io, socket, ConnectedUser, data, callback) => {
-    const { receiverId, content, attachments ,chatId } = data;
+    const { receiverId, content, attachments, chatId } = data;
     const senderId = socket.userId;
+    if (!receiverId || !attachments || attachments.length === 0 || !chatId) {
+        return callback({ success: false, message: "Invalid data." });
+    }
     try {
         const newMessage = await prisma.message.create({
             data: {
