@@ -80,7 +80,7 @@ const ChatInterface = ({ socket, fetchMessages, handleTyping, sendFileMessage, s
         });
 
         // Start the tutorial if this is the user's first time
-        const hasSeenTutorial = localStorage.getItem('chatTutorialSeen');
+        const hasSeenTutorial = localStorage.getItem('chatTutorialStatus');
         if (!hasSeenTutorial && currentTextingUser?.id) {
             driverObj.drive();
             localStorage.setItem('chatTutorialStatus', 'true');
