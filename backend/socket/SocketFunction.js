@@ -163,11 +163,6 @@ const handleFileMessage = async (io, socket, ConnectedUser, data, callback) => {
             }
         });
 
-        const receiverSocketId = ConnectedUser.get(newMessage.receiverId)?.socketId;
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("update_unread_count", { chatId: updatedChat.id, unreadCount: updatedChat.unreadCount })
-            io.to(receiverSocketId).emit('receive_message', newMessage);
-        };
 
         callback({
             success: true,
@@ -182,6 +177,11 @@ const handleFileMessage = async (io, socket, ConnectedUser, data, callback) => {
                 fileUrl: attachment.fileUrl
             }))
         });
+        const receiverSocketId = ConnectedUser.get(newMessage.receiverId)?.socketId;
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("update_unread_count", { chatId: updatedChat.id, unreadCount: updatedChat.unreadCount })
+            io.to(receiverSocketId).emit('receive_message', newMessage);
+        };
 
     } catch (error) {
         console.log("Error occured while sending message ", error.message)

@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Home from './pages/Home';
 import SigninPage from './pages/Signin';
 import { useRecoilState, useSetRecoilState } from "recoil";
@@ -8,6 +8,7 @@ import { authenticatedAtom, isUserConnectedToInternetAtom } from './states/atoms
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ProtectedRoute, UnProtectedRoute, UnVerifiedRoute, VerifiedRoute } from './components/Outlets';
 import Loader from './components/Loader';
+import Dashboard from './pages/Dashboard';
 import AboutDev from './pages/AboutDev';
 import Review from './pages/Review';
 import NotFound from './pages/NotFound';
@@ -15,10 +16,8 @@ import BasicLayout from './layout/basiclayout';
 import PrivacyPolicy from './pages/privacy';
 // import AboutDev from './Beta-Pages/BetaAbout';
 
-const Dashboard = lazy(() => import('./pages/Dashboard'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const UpdateProfileOnce = lazy(() => import('./components/UpdateProfileOnce'));
-
 
 const WorkerScript = () => new Worker(new URL('./WebWorkers/Worker-1.js', import.meta.url));
 // Create a navigation guard component to prevent redirect loops

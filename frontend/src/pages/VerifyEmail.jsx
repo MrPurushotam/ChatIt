@@ -69,7 +69,7 @@ const VerifyEmail = () => {
                 showToast("Email verified successfully!", "success");
                 resetFetchUserDetailsSelector();
                 resetLoggedUser();
-                navigate("/dashboard", { replace: true });
+                navigate("/profile", { replace: true });
             } else {
                 showToast(`Email could not be verified: ${resp.data.message}`, "error");
             }

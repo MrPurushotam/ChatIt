@@ -17,7 +17,7 @@ const SocketWrapper = ({ children }) => {
   const [disconnectSocket, setDisconnectSocket] = useRecoilState(disconnectSocketAtom);
   const isConnectedToInternet = useRecoilValue(isUserConnectedToInternetAtom);
   const setGlobalLoading = useSetRecoilState(globalLoadingAtom);
-  const setIsConnected = useSetRecoilState(isConnectedAtom);
+  const [isConnected, setIsConnected] = useRecoilState(isConnectedAtom);
   const socketRef = useRef(null);
   const navigate = useNavigate();
   const onlineChatsRef = useRef([]);
@@ -30,7 +30,6 @@ const SocketWrapper = ({ children }) => {
   const notificationSound = useNotificationSound();
 
   const fetchChats = async (start = 0, end = 20) => {
-    setIsConnected('inital-connect');
     setGlobalLoading("fetching-chats");
     try {
       const resp = await api.get(`/chat/${start}/${end}`);
@@ -58,9 +57,13 @@ const SocketWrapper = ({ children }) => {
     const socket_connection = io(url, { extraHeaders: { Authorization: `Bearer ${window.localStorage.getItem("token")}` } });
     socketRef.current = socket_connection;
     socket_connection.on('connect', () => {
-      console.log("connected")
-      fetchChats();
+      console.log("connected");
+      setIsConnected("connected")
     });
+    socket_connection.on('connect_error', (error) => {
+      console.error("Socket connection error:", error);
+    });
+
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -73,6 +76,15 @@ const SocketWrapper = ({ children }) => {
       ConnectToServer();
     }
   }, [ConnectToServer])
+
+  useEffect(() => {
+    if (socketRef.current && isConnected === "connected") {
+      const initialLoadingType = "inital-connect"; 
+      setIsConnected(initialLoadingType);
+      fetchChats();
+      setIsConnected("");
+    }
+  }, [isConnected, fetchChats, socketRef])
 
   useEffect(() => {
     if (disconnectSocket) {
@@ -117,7 +129,7 @@ const SocketWrapper = ({ children }) => {
     setChats(prev => (
       prev.map(chat => chat.otherUserId === userId ? { ...chat, isOnline } : chat)
     ));
-    
+
     // Update currentTextingUser's online status if it matches
     if (currentTextingUser?.otherUserId === userId) {
       setCurrentTextingUser(prev => ({
@@ -141,14 +153,14 @@ const SocketWrapper = ({ children }) => {
     })
     socketRef.current?.on("created-chatId", (chatId) => {
       // First update chats
-      setChats(prevChats => 
-        prevChats.map(chat => 
-          chat.isTemporary && chat.otherUserId === currentTextingUser?.otherUserId 
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.isTemporary && chat.otherUserId === currentTextingUser?.otherUserId
             ? { ...chat, id: chatId, isTemporary: false }
             : chat
         )
       );
-      
+
       // Then update current texting user separately
       if (currentTextingUser?.isTemporary) {
         setCurrentTextingUser(prev => ({
@@ -176,26 +188,27 @@ const SocketWrapper = ({ children }) => {
             : chat
         )
       );
-      if (currentTextingUser && currentTextingUser.id === newMessage.chatId && currentTextingUser.otherUserId === newMessage.senderId) {
+      if (currentTextingUser?.id === newMessage?.chatId) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       } else {
         notificationSound();
       }
     });
-    
+
     socketRef.current?.on("update_unread_count", (details) => {
       if (currentTextingUser?.id === details.chatId) {
         // Update currentTextingUser first
-        setCurrentTextingUser(prev => ({ 
-          ...prev, 
-          unreadCount: details.unreadCount 
+        setCurrentTextingUser(prev => ({
+          ...prev,
+          unreadCount: details.unreadCount
         }));
-        
+
         // Then update chats separately
-        setChats(prevChats => 
-          prevChats.map(chat => 
-            chat.id === details.chatId 
-              ? { ...chat, unreadCount: details.unreadCount } 
+
+        setChats(prevChats =>
+          prevChats.map(chat =>
+            chat.id === details.chatId
+              ? { ...chat, unreadCount: details.unreadCount }
               : chat
           )
         );

@@ -165,7 +165,11 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
                 setMessages((prev) => prev?.map(msg =>
                     msg.id === tempId ? { ...msg, id: ack.messageId, status: ack.messageStatus } : msg
                 ))
-                updateOutgoingMessage(currentTextingUser.id, messageObject.content, ack.sentAt);
+                updateOutgoingMessage(
+                    currentTextingUser.id,
+                    messageObject.content || (messageObject.attachments?.[0]?.fileType || "File"),
+                    ack.sentAt
+                );
             } else {
                 setMessages((prev) => prev.map(msg =>
                     (msg.id === tempId) ? { ...msg, status: "FAILED" } : msg

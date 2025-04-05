@@ -39,7 +39,7 @@ const ChatMessageArea = ({ sendMessage, InputOnChange, message, disableAttachmen
 
     return (
         <div className="relative w-full flex flex-row items-center justify-between space-x-2 p-2 bg-white shadow-md rounded-md">
-            <button className="p-2 text-3xl text-gray-500  hover:text-[#ee5b45] font-bold rounded-md" onClick={togglePicker}>
+            <button className="p-2 text-3xl text-gray-700  hover:text-[#ee5b45]/70 font-bold rounded-md" onClick={togglePicker}>
                 <i className="ph-duotone ph-smiley"></i>
             </button>
             {isPickerVisible && (
@@ -74,25 +74,30 @@ const ChatMessageArea = ({ sendMessage, InputOnChange, message, disableAttachmen
                 />
             </div>
 
-            <button id="AttachmentOption" className="p-2 text-2xl hover:text-[#ee6145] text-gray-500 rounded-md relative"
+            <button id="AttachmentOption" className={`p-2 text-2xl rounded-md relative ${disableAttachmentButton
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-700 hover:text-[#ee6145]/70'
+                } `}
                 onClick={() => setAttachmentVisible(prev => !prev)}
                 disabled={disableAttachmentButton}
             >
                 <i className="ph-duotone ph-paperclip"></i>
             </button>
 
-            {attachmentVisible && (
-                <Attachment setAttachmentVisible={setAttachmentVisible} />
-            )}
+            {
+                attachmentVisible && (
+                    <Attachment setAttachmentVisible={setAttachmentVisible} />
+                )
+            }
 
             {/* Send Button */}
             <button
-                className="p-2 text-2xl text-gray-500  hover:text-[#ee5b45] rounded-md"
+                className="p-2 text-2xl text-gray-700  hover:text-[#ee5b45]/70 rounded-md"
                 onClick={sendMessage}
             >
                 <i className="ph-duotone ph-paper-plane-right"></i>
             </button>
-        </div>
+        </div >
     );
 };
 

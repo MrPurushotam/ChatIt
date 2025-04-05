@@ -127,6 +127,10 @@ const ChatInterface = ({ socket, fetchMessages, handleTyping, sendFileMessage, s
         }
     }, [setAttachment]);
 
+    const removeAttachment = (index) => {
+        setAttachment((prev) => prev.filter((_, i) => i !== index));
+    };
+
     return (
         <>
             <div className='flex flex-col w-full h-screen'>
@@ -176,7 +180,7 @@ const ChatInterface = ({ socket, fetchMessages, handleTyping, sendFileMessage, s
                             <p className="text-lg font-semibold">Drop files here to upload</p>
                         </div>
                     )}
-                    {attachment?.length > 0 && (
+                    {/* {attachment?.length > 0 && (
                         <div className="sticky top-0 left-0 z-9 bg-[#f6f6f6] mb-2 ">
                             {isSending && (
                                 <div className="w-full sticky inset-0 flex justify-center items-center z-12 bg-opacity-50">
@@ -185,7 +189,7 @@ const ChatInterface = ({ socket, fetchMessages, handleTyping, sendFileMessage, s
                             )}
                             <AttachmentPreview disabled={isSending} />
                         </div>
-                    )}
+                    )} */}
                     {
                         messages?.length < 1 ?
                             <div className="w-full h-full flex justify-center items-center text-[#2196f3] font-bold">
@@ -253,6 +257,61 @@ const ChatInterface = ({ socket, fetchMessages, handleTyping, sendFileMessage, s
                     )}
                     <div ref={messagesEndRef} />
                 </section>
+
+                {attachment?.length > 0 && (
+                    <div className="relative">
+                        {isSending && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+                                <Loader size="sm" />
+                            </div>
+                        )}
+                        <div className="flex flex-wrap gap-3 p-3 bg-[#f9fafb] border-t border-gray-300">
+                            {attachment.map((file, index) => {
+                                const fileType = file.type.split('/')[0];
+                                const isImage = fileType === 'image';
+                                const isVideo = fileType === 'video';
+                                const isAudio = fileType === 'audio';
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className="relative flex flex-col items-center justify-center w-24 h-24 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"
+                                    >
+                                        {isImage ? (
+                                            <img
+                                                src={URL.createObjectURL(file)}
+                                                alt={file.name}
+                                                className="object-cover w-full h-full"
+                                            />
+                                        ) : isVideo ? (
+                                            <video
+                                                src={URL.createObjectURL(file)}
+                                                className="object-cover w-full h-full"
+                                                controls
+                                            />
+                                        ) : isAudio ? (
+                                            <div className="flex flex-col items-center justify-center w-full h-full text-blue-500">
+                                                <i className="ph-duotone ph-music-note text-3xl"></i>
+                                                <span className="text-xs truncate px-1 text-center">{file.name}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center w-full h-full text-gray-700">
+                                                <i className="ph-duotone ph-file text-3xl"></i>
+                                                <span className="text-xs truncate px-1 text-center">{file.name}</span>
+                                            </div>
+                                        )}
+                                        <button
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md"
+                                            onClick={() => removeAttachment(index)}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 <section id="ChatMessageArea" className="p-2 sm:p-3 w-full border-t-2 border-gray-100 bg-[#f4f4f6]">
                     <ChatMessageArea
