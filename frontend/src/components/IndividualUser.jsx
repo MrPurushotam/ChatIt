@@ -23,7 +23,7 @@ const IndividualUser = ({ chatDetail, onClick, loggedUser, isActive = true }) =>
               )}
             </ProgressiveImage>
             :
-            (<i className="ph-duotone ph-user text-2xl sm:text-3xl text-gray-600"></i>)
+            (<i className="z-0 ph-duotone ph-user text-2xl sm:text-3xl text-gray-600"></i>)
         }
       </div>
 

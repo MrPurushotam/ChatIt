@@ -16,15 +16,15 @@ const SocketWrapper = ({ children }) => {
   const setAuthenticated = useSetRecoilState(authenticatedAtom);
   const [disconnectSocket, setDisconnectSocket] = useRecoilState(disconnectSocketAtom);
   const isConnectedToInternet = useRecoilValue(isUserConnectedToInternetAtom);
-  const setGlobalLoading=useSetRecoilState(globalLoadingAtom);
+  const setGlobalLoading = useSetRecoilState(globalLoadingAtom);
   const setIsConnected = useSetRecoilState(isConnectedAtom);
   const socketRef = useRef(null);
   const navigate = useNavigate();
   const onlineChatsRef = useRef([]);
   const loggedUser = useLoggedUser();
-  
+
   // infite chat scroll variables 
-  const [hasMoreChats,setHasMoreChats]=useState(false);
+  const [hasMoreChats, setHasMoreChats] = useState(false);
 
   // notification hook 
   const notificationSound = useNotificationSound();
@@ -36,7 +36,7 @@ const SocketWrapper = ({ children }) => {
       const resp = await api.get(`/chat/${start}/${end}`);
       if (resp.data.success) {
         const allChats = resp.data.chats;
-        if(allChats.length===start+end){
+        if (allChats.length === start + end) {
           setHasMoreChats(true);
         }
         setChats(allChats);
@@ -45,7 +45,7 @@ const SocketWrapper = ({ children }) => {
       }
     } catch (error) {
       console.error("Error fetching messages:", error.message);
-    }finally{
+    } finally {
       setGlobalLoading("");
       setIsConnected('');
     }
@@ -55,7 +55,7 @@ const SocketWrapper = ({ children }) => {
   const ConnectToServer = useCallback(() => {
     // const socket_connection = io(url, { withCredentials: true });
     // Authorization Header
-    const socket_connection = io(url, { extraHeaders:{Authorization:`Bearer ${window.localStorage.getItem("token")}`} });
+    const socket_connection = io(url, { extraHeaders: { Authorization: `Bearer ${window.localStorage.getItem("token")}` } });
     socketRef.current = socket_connection;
     socket_connection.on('connect', () => {
       console.log("connected")
@@ -86,6 +86,14 @@ const SocketWrapper = ({ children }) => {
 
   const handleOnlineChats = (onlineChats) => {
     onlineChatsRef.current = onlineChats;
+    // Update currentTextingUser's online status if needed
+    if (currentTextingUser) {
+      const isCurrentUserOnline = onlineChats.includes(currentTextingUser.otherUserId);
+      setCurrentTextingUser(prev => ({
+        ...prev,
+        isOnline: isCurrentUserOnline
+      }));
+    }
   };
 
   useEffect(() => {
@@ -108,7 +116,15 @@ const SocketWrapper = ({ children }) => {
   const handleUserStatus = (userId, isOnline) => {
     setChats(prev => (
       prev.map(chat => chat.otherUserId === userId ? { ...chat, isOnline } : chat)
-    ))
+    ));
+    
+    // Update currentTextingUser's online status if it matches
+    if (currentTextingUser?.otherUserId === userId) {
+      setCurrentTextingUser(prev => ({
+        ...prev,
+        isOnline
+      }));
+    }
   }
 
 
@@ -124,7 +140,23 @@ const SocketWrapper = ({ children }) => {
       }
     })
     socketRef.current?.on("created-chatId", (chatId) => {
-      setCurrentTextingUser(prev => ({ ...prev, id: chatId }))
+      // First update chats
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.isTemporary && chat.otherUserId === currentTextingUser?.otherUserId 
+            ? { ...chat, id: chatId, isTemporary: false }
+            : chat
+        )
+      );
+      
+      // Then update current texting user separately
+      if (currentTextingUser?.isTemporary) {
+        setCurrentTextingUser(prev => ({
+          ...prev,
+          id: chatId,
+          isTemporary: false
+        }));
+      }
     })
 
     socketRef.current?.on("online_contacts", (onlineChats) => handleOnlineChats(onlineChats))
@@ -146,16 +178,27 @@ const SocketWrapper = ({ children }) => {
       );
       if (currentTextingUser && currentTextingUser.id === newMessage.chatId && currentTextingUser.otherUserId === newMessage.senderId) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
-      }else{
+      } else {
         notificationSound();
       }
     });
+    
     socketRef.current?.on("update_unread_count", (details) => {
       if (currentTextingUser?.id === details.chatId) {
-        console.log("update triggered")
-        setChats(prevChats => {
-          return prevChats.map((chat) => (chat.id === details.chatId) ? { ...chat, unreadCount: details.unreadCount } : chat);
-        })
+        // Update currentTextingUser first
+        setCurrentTextingUser(prev => ({ 
+          ...prev, 
+          unreadCount: details.unreadCount 
+        }));
+        
+        // Then update chats separately
+        setChats(prevChats => 
+          prevChats.map(chat => 
+            chat.id === details.chatId 
+              ? { ...chat, unreadCount: details.unreadCount } 
+              : chat
+          )
+        );
       }
     })
 
@@ -176,7 +219,7 @@ const SocketWrapper = ({ children }) => {
   return (
     <React.Fragment>
       {React.Children.map(children, child =>
-        React.cloneElement(child, { socket: socketRef.current, loggedUser, fetchChats,hasMoreChats})
+        React.cloneElement(child, { socket: socketRef.current, loggedUser, fetchChats, hasMoreChats })
       )}
     </React.Fragment>
   )

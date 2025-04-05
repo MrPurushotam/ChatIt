@@ -11,13 +11,27 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
     const [listChats, setListChats] = useRecoilState(listChatsAtom);
     const selectedDropdownItem = useRecoilValue(selectedDropDownItemAtom);
     const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);
-    const chats = useRecoilValue(chatsAtom);
+    const [chats, setChats] = useRecoilState(chatsAtom);
     const loggedUser = useRecoilValue(loggedUserAtom);
     const isConnectedToInternet = useRecoilValue(isUserConnectedToInternetAtom);
     const globalLoading = useRecoilValue(globalLoadingAtom);
 
     // Infinite scroll variables
     const dropZoneRef = useRef(null);
+
+    const addNewChatToSidebar = (data) => {
+        const tempId = `temp-${Date.now()}`;
+        const newChat = {
+            ...data,
+            id: tempId,
+            lastMessage: "",
+            lastMessageAt: new Date().toISOString(),
+            unreadCount: 0,
+            isTemporary: true
+        }
+        setChats((chats) => ([newChat, ...chats]))
+        return tempId;
+    }
 
     const sortChatsInDesc = useMemo(() => {
         let filteredChats = [...chats];
@@ -46,7 +60,7 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
                     <>
                         <nav className="sticky top-0 z-10"> {/* Increased z-index */}
                             <div className="bg-white px-2 py-3 border-b-2 border-gray-100">
-                                <Searchbar />
+                                <Searchbar createNewChat={addNewChatToSidebar} />
                             </div>
 
                             <div className="bg-white px-2 py-3 shadow-sm space-x-3 text-sm" id="user-list-type">
@@ -88,6 +102,7 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
                                 loader={<Loader className=" flex justify-center overflow-hidden" />}
                                 useWindow={false}
                                 getScrollParent={() => dropZoneRef.current}
+                                key={11131434254}
                             >
 
                                 {sortChatsInDesc?.map((chat) => (

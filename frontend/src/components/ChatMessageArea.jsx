@@ -4,9 +4,9 @@ import Picker from '@emoji-mart/react';
 import TextEditor from './TextEditor';
 import Attachment from './Attachment';
 
-const ChatMessageArea = ({sendMessage,InputOnChange,message,disableAttachmentButton }) => {
+const ChatMessageArea = ({ sendMessage, InputOnChange, message, disableAttachmentButton }) => {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [attachmentVisible ,setAttachmentVisible]=useState(false)
+    const [attachmentVisible, setAttachmentVisible] = useState(false)
     const pickerRef = useRef();
     const textareaRef = useRef();
     useEffect(() => {
@@ -73,16 +73,16 @@ const ChatMessageArea = ({sendMessage,InputOnChange,message,disableAttachmentBut
                     ref={textareaRef}
                 />
             </div>
-             
-            <button className="p-2 text-2xl hover:text-[#ee6145] text-gray-500 rounded-md relative"
-                onClick={()=>setAttachmentVisible(prev=>!prev)}
+
+            <button id="AttachmentOption" className="p-2 text-2xl hover:text-[#ee6145] text-gray-500 rounded-md relative"
+                onClick={() => setAttachmentVisible(prev => !prev)}
                 disabled={disableAttachmentButton}
             >
                 <i className="ph-duotone ph-paperclip"></i>
             </button>
 
             {attachmentVisible && (
-                <Attachment setAttachmentVisible={setAttachmentVisible}/>
+                <Attachment setAttachmentVisible={setAttachmentVisible} />
             )}
 
             {/* Send Button */}

@@ -1,305 +1,32 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { activeChatAtom, attachmentAtom, chatsAtom, globalLoadingAtom, messagesAtom, viewImageAtom } from "../states/atoms"
-import { useRecoilState, useSetRecoilState } from "recoil"
+import { activeChatAtom, globalLoadingAtom, viewImageAtom } from "../states/atoms"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import SingleMessageUi from "./SingleMessageUi"
-import initalizeApi from "../utils/Api"
-import useDebounce from "../Hooks/useDebounce";
 import ChatMessageArea from "./ChatMessageArea"
 import AttachmentPreview from "./AttachmentPreview"
 import Loader from "./Loader";
 import InfiniteScroll from 'react-infinite-scroller';
 import ProgressiveImage from "./ProgressiveImage";
 import { formatToDDMMYYYY } from "../utils/dateFunction"
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 //EXP removing auto scroll with user guided scroll. No need to auto scroll user can click on arrow and get down to chats 
 // TODO: We should add a green / orange dot over arrow which shall help us know when there is new chats. 
 // TODO: We can add a ringtone when a new message comes from the same chat user has opened then it shall play. 
 // TODO: chat wallpapers
 
-const ChatInterface = ({ socket, loggedUser }) => {
-    const api = initalizeApi();
-    const [message, setMessage] = useState("")
-    const [messages, setMessages] = useRecoilState(messagesAtom)
+const ChatInterface = ({ socket, fetchMessages, handleTyping, sendFileMessage, sendMessage, scrollToLatestMessage, chatAreaRef, messagesEndRef, messageRefs, showScrollToLatest, hasMore, isSending, typing, attachment, setAttachment, messages, setMessages, message, setMessage }) => {
     const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);
-    const setChats = useSetRecoilState(chatsAtom)
     const setViewImage = useSetRecoilState(viewImageAtom);
-    const [attachment, setAttachment] = useRecoilState(attachmentAtom);
-    const [typing, setTyping] = useState(false)
-    const typingTimeoutRef = useRef(null)
-    const messageIdsRef = useRef(new Set())
-    const messageRefs = useRef({});
 
-    const [globalLoading, setGlobalLoading] = useRecoilState(globalLoadingAtom)
-    const [isSending, setIsSending] = useState(false)
+    const globalLoading = useRecoilValue(globalLoadingAtom)
     // drag and drop functionality test
     const [isDragging, setIsDragging] = useState(false);
     const dropZoneRef = useRef(null);
     const dragCounter = useRef(0);
-    // It shall keep track of number of message fetched
-    const fetchMessageCounter = useRef(0);
-    const [hasMore, setHasMore] = useState(true);
-    // auto scroll to unread message , scroll variables
-    const messagesEndRef = useRef(null)
-    const [isUserScrolling, setIsUserScrolling] = useState(false);
-    // dynamic go to top button
-    const [showScrollToLatest, setShowScrollToLatest] = useState(false);
     // adding date to messages 
     const lastDate = useRef(null);
-
-    const scrollToFirstUnreadMessage = useCallback(() => {
-        const firstUnreadMessage = Object.values(messageRefs.current).find(msg => (msg.status === "SENT" && msg.senderId !== loggedUser.id));
-        if (firstUnreadMessage?.element) {
-            firstUnreadMessage.element.scrollIntoView({ behavior: "smooth", block: "center" });
-        } else {
-            scrollToLatestMessage();
-        }
-    }, [loggedUser.id])
-
-    const scrollToLatestMessage = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        setIsUserScrolling(false);
-    }, []);
-
-    const updateOutgoingMessage = (chatId, content, sentAt) => {
-        setChats((prev) => prev.map((chat) => chat.id === chatId ? { ...chat, lastMessage: content, lastMessageAt: sentAt } : chat));
-    }
-
-    const sendMessage = () => {
-        if (!currentTextingUser) {
-            console.log("Aboorted")
-            return
-        }
-        if (!message.trim()) {
-            console.log("Aboorted, Message can't be empty.")
-            return;
-        }
-        console.log("Message is ", message)
-        const tempId = Date.now().toString()
-        let messageObject = {
-            content: message.replace(/^[\s\n]+|[\s\n]+$/g, ''),
-            receiverId: currentTextingUser.otherUserId,
-            chatId: currentTextingUser.id,
-            status: "Sending",
-            senderId: loggedUser.id,
-            sentAt: new Date().toISOString()
-        }
-        setMessages(prev => ([...prev, { ...messageObject, id: tempId }]))
-
-        socket.emit("send_message", messageObject, (ack) => {
-            if (ack.success) {
-                setMessages((prev) => prev?.map(msg =>
-                    msg.id === tempId ? { ...msg, id: ack.messageId, status: ack.messageStatus } : msg
-                ))
-                updateOutgoingMessage(currentTextingUser.id, messageObject.content, ack.sentAt);
-            } else {
-                setMessages((prev) => prev.map(msg =>
-                    (msg.id === tempId) ? { ...msg, status: "FAILED" } : msg
-                ))
-            }
-        })
-        setMessage("")
-    }
-    // FIXME: add globalLoader  here.
-    const sendFileMessage = async () => {
-        if (attachment.length == 0 || isSending) {
-            return;
-        }
-        if (!currentTextingUser) {
-            console.log("Aboorted")
-            return
-        }
-        setIsSending(true);
-
-        try {
-            const formdata = new FormData();
-
-            attachment.forEach((file) => {
-                formdata.append("file", file);
-            })
-
-            const resp = await api.post(`/chat/upload/${currentTextingUser.id}`, formdata);
-            if (resp.data.success) {
-                const fileInfo = resp.data.files;
-                const tempId = Date.now().toString();
-                const messageObject = {
-                    id: tempId,
-                    content: message || "",
-                    receiverId: currentTextingUser.otherUserId,
-                    chatId: currentTextingUser.id,
-                    status: "Sending",
-                    senderId: loggedUser.id,
-                    sentAt: new Date().toISOString(),
-                    attachments: fileInfo.map((file, i) => ({
-                        id: i,
-                        fileName: file.fileName,
-                        fileType: file.fileType,
-                        fileSize: file.fileSize,
-                        fileUrl: file.fileUrl
-                    }))
-                }
-
-                setMessages(prev => [...prev, messageObject]);
-                socket.emit("send_file_message", messageObject, (ack) => {
-                    console.log("Ack is  ", ack)
-                    if (ack.success) {
-                        setMessages(prevMessages => {
-                            return prevMessages.map(msg =>
-                                msg.id === tempId ? {
-                                    ...msg,
-                                    id: ack.messageId,
-                                    status: ack.messageStatus,
-                                    sentAt: ack.sentAt,
-                                    attachments: ack.attachments
-                                } : msg
-                            )
-                        })
-                        updateOutgoingMessage(currentTextingUser.id, messageObject.content, ack.sentAt);
-                    } else {
-                        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempId))
-                        console.error("Failed to send file message");
-                    }
-                })
-            }
-            else {
-                console.log("Some issue occured while file uploading");
-            }
-        } catch (error) {
-            console.log("Some error occurred while sending file message ", error.message);
-        } finally {
-            setAttachment([]);
-            setMessage('');
-            setIsSending(false);
-        }
-    }
-    const fetchMessages = async (count = 50) => {
-        if (globalLoading === "fetching-messages") {
-            return;
-        }
-        setGlobalLoading("fetching-messages");
-        try {
-            const resp = await api.post(`/message/${currentTextingUser.id}`, { start: fetchMessageCounter.current, end: fetchMessageCounter.current + count });
-            if (resp.data.success) {
-                setMessages(prev => {
-                    const uniqueMessages = resp.data.messages.reverse().filter((newMessage) => {
-                        if (!messageIdsRef.current.has(newMessage.id)) {
-                            messageIdsRef.current.add(newMessage.id);
-                            return true;
-                        }
-                        return false;
-                    });
-                    const updatedMessages = [...uniqueMessages, ...prev]
-
-                    if (resp.data.messages.length === count) {
-                        fetchMessageCounter.current += count;
-                        setHasMore(true);
-                    } else {
-                        setHasMore(false);
-                    }
-                    return updatedMessages;
-                })
-            } else {
-                console.error("Error occurred while fetching chat messages, ", resp.data.message);
-            }
-        } catch (error) {
-            console.error("Error occurred while fetching messages ", error.message);
-        } finally {
-            setGlobalLoading("");
-        }
-    };
-
-
-    const handleTyping = () => {
-        if (socket && currentTextingUser) {
-            socket.emit("typing", currentTextingUser.id)
-
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-
-            typingTimeoutRef.current = setTimeout(() => {
-                socket.emit("stop_typing", currentTextingUser.id)
-            }, 1500)
-        }
-    }
-
-    const markMessageAsRead = useCallback((messageIds) => {
-        socket.emit('messages_read', messageIds);
-    }, [socket]);
-
-    const debouncedMarkMessageAsRead = useDebounce(markMessageAsRead, 10);
-
-    const handleScroll = useCallback(() => {
-        setIsUserScrolling(true);
-        const chatArea = document.getElementById("ChatArea");
-        if (!chatArea) return;
-
-        const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
-        if (isAtBottom) {
-            setIsUserScrolling(false);
-            setShowScrollToLatest(false);
-        } else {
-            setIsUserScrolling(true);
-            setShowScrollToLatest(true);
-        }
-
-        const messageElements = document.querySelectorAll('.message');
-        const viewportHeight = chatArea.clientHeight;
-        const messageToRead = [];
-        messageElements.forEach((element) => {
-            const rect = element.getBoundingClientRect();
-            const messageId = element.dataset.messageId;
-            const messageRef = messageRefs.current[messageId];
-
-            if (rect.top >= 0 && rect.bottom <= viewportHeight &&
-                messageRef && messageRef.status !== 'READ' &&
-                messageRef.senderId !== loggedUser.id
-            ) {
-                messageToRead.push(messageId);
-                messageRefs.current[messageId].status = "READ";
-            }
-        });
-        if (messageToRead.length > 0) {
-            debouncedMarkMessageAsRead(messageToRead);
-        }
-    }, [debouncedMarkMessageAsRead, loggedUser.id]);
-
-    const debounceScroll = useDebounce(handleScroll, 60);
-
-    useEffect(() => {
-        const chatArea = document.getElementById("ChatArea");
-        if (chatArea) {
-            chatArea.addEventListener('scroll', debounceScroll);
-            return () => chatArea.removeEventListener('scroll', debounceScroll);
-        }
-    }, [debounceScroll]);
-
-    useEffect(() => {
-        if (!isUserScrolling) {
-            const chatArea = document.getElementById('ChatArea');
-            if (!chatArea) return;
-
-            const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
-
-            if (isAtBottom) {
-                scrollToLatestMessage();
-            } else {
-                scrollToFirstUnreadMessage();
-            }
-        }
-    }, [messages, isUserScrolling, scrollToFirstUnreadMessage, scrollToLatestMessage]);
-
-
-    useEffect(() => {
-        if (currentTextingUser) {
-            messageRefs.current = {}
-            fetchMessageCounter.current = 0;
-            setHasMore(true);
-            setMessages([]);
-            setAttachment([]);
-            messageIdsRef.current.clear();
-            fetchMessages();
-        }
-    }, [currentTextingUser]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -318,41 +45,51 @@ const ChatInterface = ({ socket, loggedUser }) => {
     }, []);
 
     useEffect(() => {
-        if (socket) {
-
-            socket.on("user_typing", ({ chatId, typingUsersId }) => {
-                if (currentTextingUser.id === chatId && currentTextingUser.otherUserId === typingUsersId) {
-                    setTyping(true)
+        const driverObj = driver({
+            showProgress: true,
+            steps: [
+                {
+                    element: '#ChatHead',
+                    popover: {
+                        title: 'Chat Header',
+                        description: 'Here you can see the profile picture and status of the person you\'re chatting with,tap on profile to see enlarged view.'
+                    }
+                },
+                {
+                    element: '#ChatArea',
+                    popover: {
+                        title: 'Chat Area',
+                        description: 'All your messages appear here. You can scroll through your chat history and drop files to send them.'
+                    }
+                },
+                {
+                    element: '#ChatMessageArea',
+                    popover: {
+                        title: 'Message Input',
+                        description: 'Type your messages here. Remeber to be polite and follow privacy policy. '
+                    }
+                },
+                {
+                    element: '#AttachmentOption',
+                    popover: {
+                        title: 'Attachment Option',
+                        description: 'Select the desired attachement you want to share and simply add it to share. '
+                    }
                 }
-            })
+            ]
+        });
 
-            socket.on("user_stopped_typing", ({ chatId, typingUsersId }) => {
-                if (currentTextingUser.id === chatId && currentTextingUser.otherUserId === typingUsersId) {
-                    setTyping(false)
-                }
-            })
-
-            socket.on("message_status_update", ({ messageIds, status }) => {
-                setMessages(prevMessages => {
-                    return prevMessages.map(msg => {
-                        if (messageIds.includes(msg.id)) {
-                            const updatedMsg = { ...msg, status };
-                            messageRefs.current[msg.id] = { ...updatedMsg, element: messageRefs.current[msg.id]?.element };
-                            return updatedMsg;
-                        }
-                        return msg;
-                    });
-                });
-            });
-
-            return () => {
-                socket.off("user_typing");
-                socket.off("user_stop_typing");
-                socket.off("message_status_update");
-            }
+        // Start the tutorial if this is the user's first time
+        const hasSeenTutorial = localStorage.getItem('chatTutorialSeen');
+        if (!hasSeenTutorial && currentTextingUser?.id) {
+            driverObj.drive();
+            localStorage.setItem('chatTutorialStatus', 'true');
         }
-    }, [socket, currentTextingUser, setCurrentTextingUser])
 
+        return () => {
+            driverObj.destroy();
+        };
+    }, []);
 
     const handleDrag = useCallback((e) => {
         e.preventDefault();
@@ -424,29 +161,33 @@ const ChatInterface = ({ socket, loggedUser }) => {
                     </div>
                 </section>
 
-                <section id="ChatArea" className={`relative flex flex-col overflow-y-auto bg-[#f6f6f6] px-3 py-2 space-y-2 w-full h-full  ${isDragging ? 'bg-blue-100' : ''}`}
+                <section id="ChatArea"
+                    className={`relative flex flex-col overflow-y-auto bg-[#f6f6f6] px-3 py-2 space-y-2 w-full h-full  ${isDragging ? 'bg-blue-100' : ''}`}
                     onDragEnter={handleDragIn}
                     onDragLeave={handleDragOut}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
-                    ref={dropZoneRef}>
+                    ref={node => {
+                        dropZoneRef.current = node;
+                        chatAreaRef.current = node;
+                    }}>
                     {isDragging && (
                         <div className="sticky inset-0 flex items-center justify-center w-full h-full bg-blue-200 bg-opacity-50 z-10 pointer-events-none">
                             <p className="text-lg font-semibold">Drop files here to upload</p>
                         </div>
                     )}
-                    {attachment.length > 0 && (
+                    {attachment?.length > 0 && (
                         <div className="sticky top-0 left-0 z-9 bg-[#f6f6f6] mb-2 ">
                             {isSending && (
-                                <div className="sticky inset-0 flex justify-center items-center z-12 bg-opacity-50">
-                                    <Loader className="w-8 h-8 sm:w-12 sm:h-12" />
+                                <div className="w-full sticky inset-0 flex justify-center items-center z-12 bg-opacity-50">
+                                    <Loader className="inline-block mx-auto" size="xs" />
                                 </div>
                             )}
                             <AttachmentPreview disabled={isSending} />
                         </div>
                     )}
                     {
-                        messages.length < 1 ?
+                        messages?.length < 1 ?
                             <div className="w-full h-full flex justify-center items-center text-[#2196f3] font-bold">
                                 Start Conversation...
                             </div>
@@ -455,13 +196,14 @@ const ChatInterface = ({ socket, loggedUser }) => {
                     }
                     <InfiniteScroll
                         className="space-y-2"
-                        pageStart={messages.length}
+                        pageStart={messages?.length}
                         loadMore={fetchMessages}
                         hasMore={hasMore}
-                        loader={<Loader className=" flex justify-center overflow-hidden" />}
+                        loader={<Loader key="chat-loader" className=" flex justify-center overflow-hidden mx-auto" size="xs" />}
                         useWindow={false}
                         isReverse={true}
                         getScrollParent={() => dropZoneRef.current}
+                        key={121}
                     >
 
                         {
@@ -517,7 +259,7 @@ const ChatInterface = ({ socket, loggedUser }) => {
                         socket={socket}
                         handleTyping={handleTyping}
                         sendMessage={() => {
-                            if (attachment.length > 0) {
+                            if (attachment?.length > 0) {
                                 sendFileMessage();
                             } else {
                                 sendMessage()
@@ -528,7 +270,7 @@ const ChatInterface = ({ socket, loggedUser }) => {
                             handleTyping();
                         }}
                         message={message}
-                        disableAttachmentButton={isSending || globalLoading.trim() || !currentTextingUser.id}
+                        disableAttachmentButton={isSending || globalLoading.trim() || !currentTextingUser.id || currentTextingUser.isTemporary}
                     />
                 </section>
             </div>

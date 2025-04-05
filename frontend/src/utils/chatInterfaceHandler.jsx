@@ -1,0 +1,378 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import initalizeApi from './Api';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { activeChatAtom, attachmentAtom, chatsAtom, globalLoadingAtom, messagesAtom } from '../states/atoms';
+import useDebounce from '../Hooks/useDebounce';
+
+
+// FIXME: There is some issue with auto scrolling. We need to push the useEffect hook to ChatInterface page. 
+
+const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
+    const api = initalizeApi();
+    const [message, setMessage] = useState("")
+    const [messages, setMessages] = useRecoilState(messagesAtom)
+    const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);
+    const setChats = useSetRecoilState(chatsAtom)
+
+    const [typing, setTyping] = useState(false)
+    const typingTimeoutRef = useRef(null)
+
+    const messageIdsRef = useRef(new Set())
+    const messageRefs = useRef({});
+
+    const [attachment, setAttachment] = useRecoilState(attachmentAtom);
+
+    const [globalLoading, setGlobalLoading] = useRecoilState(globalLoadingAtom)
+    const [isSending, setIsSending] = useState(false)
+
+    const fetchMessageCounter = useRef(0);
+    const [hasMore, setHasMore] = useState(true);
+
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
+    // dynamic go to top button
+    const [showScrollToLatest, setShowScrollToLatest] = useState(false);
+    const messagesEndRef = useRef(null)
+
+    const chatAreaRef = useRef(null);
+    useEffect(() => {
+        if (currentTextingUser) {
+            messageRefs.current = {}
+            fetchMessageCounter.current = 0;
+            setHasMore(true);
+            setMessages([]);
+            setAttachment([]);
+            messageIdsRef.current.clear();
+            fetchMessages();
+        }
+    }, [currentTextingUser]);
+
+
+    useEffect(() => {
+        if (socket) {
+
+            socket?.on("user_typing", ({ chatId, typingUsersId }) => {
+                if (currentTextingUser.id === chatId && currentTextingUser.otherUserId === typingUsersId) {
+                    setTyping(true)
+                }
+            })
+
+            socket?.on("user_stopped_typing", ({ chatId, typingUsersId }) => {
+                if (currentTextingUser.id === chatId && currentTextingUser.otherUserId === typingUsersId) {
+                    setTyping(false)
+                }
+            })
+
+            socket?.on("message_status_update", ({ messageIds, status }) => {
+                setMessages(prevMessages => {
+                    return prevMessages.map(msg => {
+                        if (messageIds.includes(msg.id)) {
+                            const updatedMsg = { ...msg, status };
+                            messageRefs.current[msg.id] = { ...updatedMsg, element: messageRefs.current[msg.id]?.element };
+                            return updatedMsg;
+                        }
+                        return msg;
+                    });
+                });
+            });
+
+            return () => {
+                socket?.off("user_typing");
+                socket?.off("user_stop_typing");
+                socket?.off("message_status_update");
+            }
+        }
+    }, [socket, currentTextingUser, setCurrentTextingUser])
+
+
+
+    const fetchMessages = async (count = 50) => {
+        if (globalLoading === "fetching-messages") {
+            return;
+        }
+        setGlobalLoading("fetching-messages");
+        try {
+            const resp = await api.post(`/message/${currentTextingUser.id}`, { start: fetchMessageCounter.current, end: fetchMessageCounter.current + count });
+            if (resp.data.success) {
+                setMessages(prev => {
+                    const uniqueMessages = resp.data.messages.reverse().filter((newMessage) => {
+                        if (!messageIdsRef.current.has(newMessage.id)) {
+                            messageIdsRef.current.add(newMessage.id);
+                            return true;
+                        }
+                        return false;
+                    });
+                    const updatedMessages = [...uniqueMessages, ...prev]
+
+                    if (resp.data.messages.length === count) {
+                        fetchMessageCounter.current += count;
+                        setHasMore(true);
+                    } else {
+                        setHasMore(false);
+                    }
+                    return updatedMessages;
+                })
+            } else {
+                console.error("Error occurred while fetching chat messages, ", resp.data.message);
+            }
+        } catch (error) {
+            console.error("Error occurred while fetching messages ", error.message);
+        } finally {
+            setGlobalLoading("");
+        }
+    };
+
+    // TODO: check if scroll logic is working perfectly or not. 
+    const scrollToFirstUnreadMessage = useCallback(() => {
+        const firstUnreadMessage = Object.values(messageRefs.current).find(msg => (msg.status === "SENT" && msg.senderId !== loggedUser?.id));
+        if (firstUnreadMessage?.element) {
+            firstUnreadMessage.element.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+            scrollToLatestMessage();
+        }
+    }, [loggedUser.id])
+
+    const scrollToLatestMessage = useCallback(() => {
+        messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+        setIsUserScrolling(false);
+    }, []);
+
+    const updateOutgoingMessage = (chatId, content, sentAt) => {
+        setChats((prev) => prev.map((chat) => chat.id === chatId ? { ...chat, lastMessage: content, lastMessageAt: sentAt } : chat));
+    }
+
+    const sendMessage = () => {
+        if (!currentTextingUser) {
+            console.log("Aboorted")
+            return
+        }
+        if (!message.trim()) {
+            return;
+        }
+        console.log("Message is ", message)
+        const tempId = Date.now().toString();
+        let messageObject = {
+            content: message.replace(/^[\s\n]+|[\s\n]+$/g, ''),
+            receiverId: currentTextingUser.otherUserId,
+            chatId: currentTextingUser.id,
+            status: "Sending",
+            senderId: loggedUser.id,
+            sentAt: new Date().toISOString()
+        }
+        setMessages(prev => ([...prev, { ...messageObject, id: tempId }]))
+
+        socket?.emit("send_message", messageObject, (ack) => {
+            if (ack.success) {
+                setMessages((prev) => prev?.map(msg =>
+                    msg.id === tempId ? { ...msg, id: ack.messageId, status: ack.messageStatus } : msg
+                ))
+                updateOutgoingMessage(currentTextingUser.id, messageObject.content, ack.sentAt);
+            } else {
+                setMessages((prev) => prev.map(msg =>
+                    (msg.id === tempId) ? { ...msg, status: "FAILED" } : msg
+                ))
+            }
+        })
+        setMessage("")
+    }
+    // FIXME: add globalLoader  here.
+    const sendFileMessage = async () => {
+        if (attachment.length == 0 || isSending) {
+            return;
+        }
+        if (!currentTextingUser) {
+            return
+        }
+        setIsSending(true);
+
+        try {
+            const formdata = new FormData();
+
+            attachment.forEach((file) => {
+                formdata.append("file", file);
+            })
+
+            const resp = await api.post(`/chat/upload/${currentTextingUser.id}`, formdata);
+            if (resp.data.success) {
+                const fileInfo = resp.data.files;
+                const tempId = Date.now().toString();
+                const messageObject = {
+                    id: tempId,
+                    content: message || "",
+                    receiverId: currentTextingUser.otherUserId,
+                    chatId: currentTextingUser.id,
+                    status: "Sending",
+                    senderId: loggedUser.id,
+                    sentAt: new Date().toISOString(),
+                    attachments: fileInfo.map((file, i) => ({
+                        id: i,
+                        fileName: file.fileName,
+                        fileType: file.fileType,
+                        fileSize: file.fileSize,
+                        fileUrl: file.fileUrl
+                    }))
+                }
+
+                setMessages(prev => [...prev, messageObject]);
+                socket?.emit("send_file_message", messageObject, (ack) => {
+                    console.log("Ack is  ", ack)
+                    if (ack.success) {
+                        setMessages(prevMessages => {
+                            return prevMessages.map(msg =>
+                                msg.id === tempId ? {
+                                    ...msg,
+                                    id: ack.messageId,
+                                    status: ack.messageStatus,
+                                    sentAt: ack.sentAt,
+                                    attachments: ack.attachments
+                                } : msg
+                            )
+                        })
+                        updateOutgoingMessage(currentTextingUser.id, messageObject.content, ack.sentAt);
+                    } else {
+                        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempId))
+                        console.error("Failed to send file message");
+                    }
+                })
+            }
+            else {
+                console.log("Some issue occured while file uploading");
+            }
+        } catch (error) {
+            console.log("Some error occurred while sending file message ", error.message);
+        } finally {
+            setAttachment([]);
+            setMessage('');
+            setIsSending(false);
+        }
+    }
+
+    const handleTyping = () => {
+        if (socket && currentTextingUser) {
+            socket.emit("typing", currentTextingUser.id)
+
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+
+            typingTimeoutRef.current = setTimeout(() => {
+                socket.emit("stop_typing", currentTextingUser.id)
+            }, 1500)
+        }
+    }
+    // TODO: mark message read has some error in it
+    const markMessageAsRead = useCallback((messageIds, chatId) => {
+        socket?.emit('messages_read', messageIds, chatId);
+    }, [socket]);
+
+    const debouncedMarkMessageAsRead = useDebounce(markMessageAsRead, 10);
+
+
+    const handleScroll = useCallback(() => {
+        if (!chatAreaRef.current) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = chatAreaRef.current;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight <= 12;
+
+        setIsUserScrolling(!isAtBottom);
+        setShowScrollToLatest(!isAtBottom);
+
+        const messageElements = chatAreaRef.current.querySelectorAll('.message');
+        const messageToRead = [];
+        const viewportTop = chatAreaRef.current.getBoundingClientRect().top;
+        const viewportBottom = viewportTop + clientHeight;
+
+        messageElements.forEach((element) => {
+            const rect = element.getBoundingClientRect();
+            const messageId = element.dataset.messageId;
+            const messageRef = messageRefs.current[messageId];
+
+            // Check if message is visible in viewport and needs to be marked as read
+            if (rect.top >= viewportTop &&
+                rect.bottom <= viewportBottom &&
+                messageRef &&
+                messageRef.status !== 'READ' &&
+                messageRef.senderId !== loggedUser?.id
+            ) {
+                messageToRead.push(messageId);
+                messageRefs.current[messageId].status = "READ";
+            }
+        });
+
+        if (messageToRead.length > 0) {
+            debouncedMarkMessageAsRead(messageToRead, currentTextingUser?.id);
+        }
+    }, [debouncedMarkMessageAsRead, loggedUser?.id, currentTextingUser?.id]);
+
+    const debounceScroll = useDebounce(handleScroll, 60);
+    
+    useEffect(() => {
+        const chatArea = chatAreaRef.current;
+        if (chatArea) {
+            chatArea.addEventListener('scroll', debounceScroll);
+            return () => chatArea.removeEventListener('scroll', debounceScroll);
+        }
+    }, [debounceScroll]);
+
+
+    // const handleScroll = useCallback(() => {
+    //     setIsUserScrolling(true);
+    //     const chatArea = document.getElementById("ChatArea");
+    //     if (!chatArea) return;
+
+    //     const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
+    //     if (isAtBottom) {
+    //         setIsUserScrolling(false);
+    //         setShowScrollToLatest(false);
+    //     } else {
+    //         setIsUserScrolling(true);
+    //         setShowScrollToLatest(true);
+    //     }
+
+    //     const messageElements = document.querySelectorAll('.message');
+    //     const viewportHeight = chatArea.clientHeight;
+    //     const messageToRead = [];
+    //     messageElements.forEach((element) => {
+    //         const rect = element.getBoundingClientRect();
+    //         const messageId = element.dataset.messageId;
+    //         const messageRef = messageRefs.current[messageId];
+
+    //         if (rect.top >= 0 && rect.bottom <= viewportHeight &&
+    //             messageRef && messageRef.status !== 'READ' &&
+    //             messageRef.senderId !== loggedUser.id
+    //         ) {
+    //             messageToRead.push(messageId);
+    //             messageRefs.current[messageId].status = "READ";
+    //         }
+    //     });
+    //     if (messageToRead.length > 0) {
+    //         debouncedMarkMessageAsRead(messageToRead, currentTextingUser.id);
+    //     }
+    // }, [debouncedMarkMessageAsRead, loggedUser.id, currentTextingUser.id]);
+
+
+    useEffect(() => {
+        if (!isUserScrolling && messages.length > 0) {
+            const chatArea = chatAreaRef.current;
+            if (!chatArea) return;
+
+            const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
+
+            if (isAtBottom) {
+                scrollToLatestMessage();
+            } else {
+                scrollToFirstUnreadMessage();
+            }
+        }
+    }, [messages, isUserScrolling, scrollToLatestMessage, scrollToFirstUnreadMessage]);
+
+
+    return (
+        <React.Fragment>
+            {React.Children.map(children, child =>
+                React.cloneElement(child, { socket, fetchMessages, handleTyping, scrollToFirstUnreadMessage, sendFileMessage, sendMessage, scrollToLatestMessage, chatAreaRef, messagesEndRef, messageRefs, showScrollToLatest, hasMore, isSending, typing, attachment, setAttachment, messages, setMessages, message, setMessage })
+            )}
+        </React.Fragment>
+    )
+}
+
+export default ChatInterfaceHandler

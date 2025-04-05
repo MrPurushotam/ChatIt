@@ -9,6 +9,7 @@ import Logo from "../components/Logo";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { useEffect, useState } from "react";
+import ChatInterfaceHandler from "../utils/chatInterfaceHandler";
 
 // THOUGHT: I am thinking to add a temp page or loader just like whatsapp which will run untill chats are fetched , chatList is fetched & socket is connected successfully. Post that the chat window shoudl appear any error while fetching or connnecting any thing then it shall stop and logout! 
 
@@ -98,7 +99,9 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
             <div className=" static h-full border-l-2 border-gray-300">
               {
                 currentTextingUser ?
-                  <ChatInterface socket={socket} loggedUser={loggedUser} />
+                  <ChatInterfaceHandler socket={socket} loggedUser={loggedUser}>
+                    <ChatInterface />
+                  </ChatInterfaceHandler>
                   :
                   <div className="flex items-center justify-center h-full w-full p-4 text-center">
                     <p className="text-lg md:text-xl font-serif font-semibold tracking-wide">Stay happy, Stay connected.</p>

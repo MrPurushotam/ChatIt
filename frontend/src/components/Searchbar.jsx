@@ -5,7 +5,7 @@ import { activeChatAtom } from "../states/atoms";
 import OptionsDropdown from "./OptionsDropdown";
 import initalizeApi from "../utils/Api";
 
-const Searchbar = () => {
+const Searchbar = ({ createNewChat }) => {
     const api = initalizeApi();
     const [searchUser, setSearchUser] = useState("");
     const [users, setUsers] = useState([]);
@@ -41,6 +41,23 @@ const Searchbar = () => {
         return () => clearTimeout(timeoutId);
     }, [searchUser, handleSearch]);
 
+    const searchFunction = (user) => {
+        if (!user.hasChat) {
+            const tempId = createNewChat(user);
+            const tempUser = {
+                ...user,
+                id: tempId,
+                isTemporary: true,
+            }
+            console.log(tempUser);
+            setCurrentTextingUser(tempUser);
+        } else {
+            setCurrentTextingUser(user);
+        }
+        setSearchUser("");
+        setUsers([]);
+    }
+
     return (
         <div className="w-full z-20"
             onKeyDown={(e) => {
@@ -69,8 +86,20 @@ const Searchbar = () => {
                 </div>
             </form>
 
+            {/* 
+                otherUserName: user.username,
+                otherUserDisplayName: user.displayName,
+                otherUserId: user.id,
+                otherUserProfile: user.profile,
+                otherUserLastOnline: user.lastOnline,
+                lastMessage: existingChat?.lastMessage || null,
+                lastMessageAt: existingChat?.lastMessageAt || null,
+                id: existingChat?.id,
+                hasChat: !!existingChat,
+             */}
+
             {users.length > 0 && (
-                <div className="absolute !z-[100] left-0 w-4/5 sm:left-2 right-0 sm:right-2 max-h-[60vh] sm:max-h-96 overflow-y-auto bg-white border border-gray-300 rounded-sm shadow-lg scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thumb-rounded-full" >
+                <div className="absolute !z-[90] left-0 w-4/5 sm:left-2 right-0 sm:right-2 max-h-[60vh] sm:max-h-96 overflow-y-auto bg-white border border-gray-300 rounded-sm shadow-lg scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thumb-rounded-full" >
                     <ul className="divide-y divide-gray-100">
                         {users.map((user) => {
                             const date = new Date(user?.lastMessageAt).toLocaleTimeString('en-US', {
@@ -81,11 +110,7 @@ const Searchbar = () => {
                             return (
                                 <li key={user.otherUserId}
                                     className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                    onClick={() => {
-                                        setCurrentTextingUser(user);
-                                        setSearchUser("")
-                                        setUsers([]);
-                                    }}
+                                    onClick={() => searchFunction(user)}
                                 >
                                     <div className="flex items-center px-2 sm:px-4 py-2 sm:py-3 gap-2">
                                         <div className='w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-transparent '>
