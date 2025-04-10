@@ -15,6 +15,7 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
     const setChats = useSetRecoilState(chatsAtom)
 
     const [typing, setTyping] = useState(false)
+
     const typingTimeoutRef = useRef(null)
 
     const messageIdsRef = useRef(new Set())
@@ -28,12 +29,8 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
     const fetchMessageCounter = useRef(0);
     const [hasMore, setHasMore] = useState(true);
 
-    const [isUserScrolling, setIsUserScrolling] = useState(false);
     // dynamic go to top button
-    const [showScrollToLatest, setShowScrollToLatest] = useState(false);
-    const messagesEndRef = useRef(null)
 
-    const chatAreaRef = useRef(null);
     useEffect(() => {
         if (currentTextingUser) {
             messageRefs.current = {}
@@ -49,39 +46,33 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
 
     useEffect(() => {
         if (socket) {
-
             socket?.on("user_typing", ({ chatId, typingUsersId }) => {
                 if (currentTextingUser.id === chatId && currentTextingUser.otherUserId === typingUsersId) {
-                    setTyping(true)
+                    setTyping(true);
                 }
-            })
+            });
 
             socket?.on("user_stopped_typing", ({ chatId, typingUsersId }) => {
                 if (currentTextingUser.id === chatId && currentTextingUser.otherUserId === typingUsersId) {
-                    setTyping(false)
+                    setTyping(false);
                 }
-            })
+            });
 
             socket?.on("message_status_update", ({ messageIds, status }) => {
-                setMessages(prevMessages => {
-                    return prevMessages.map(msg => {
-                        if (messageIds.includes(msg.id)) {
-                            const updatedMsg = { ...msg, status };
-                            messageRefs.current[msg.id] = { ...updatedMsg, element: messageRefs.current[msg.id]?.element };
-                            return updatedMsg;
-                        }
-                        return msg;
-                    });
-                });
+                setMessages((prevMessages) =>
+                    prevMessages.map((msg) =>
+                        messageIds.includes(msg.id) ? { ...msg, status } : msg
+                    )
+                );
             });
 
             return () => {
                 socket?.off("user_typing");
-                socket?.off("user_stop_typing");
+                socket?.off("user_stopped_typing");
                 socket?.off("message_status_update");
-            }
+            };
         }
-    }, [socket, currentTextingUser, setCurrentTextingUser])
+    }, [socket, currentTextingUser]);
 
 
 
@@ -122,24 +113,15 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
     };
 
     // TODO: check if scroll logic is working perfectly or not. 
-    const scrollToFirstUnreadMessage = useCallback(() => {
-        const firstUnreadMessage = Object.values(messageRefs.current).find(msg => (msg.status === "SENT" && msg.senderId !== loggedUser?.id));
-        if (firstUnreadMessage?.element) {
-            firstUnreadMessage.element.scrollIntoView({ behavior: "smooth", block: "center" });
-        } else {
-            scrollToLatestMessage();
-        }
-    }, [loggedUser.id])
-
-    const scrollToLatestMessage = useCallback(() => {
-        messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-        setIsUserScrolling(false);
-    }, []);
 
     const updateOutgoingMessage = (chatId, content, sentAt) => {
         setChats((prev) => prev.map((chat) => chat.id === chatId ? { ...chat, lastMessage: content, lastMessageAt: sentAt } : chat));
     }
-
+    
+    const removeTemporaryUserOnEscape = (id) => {
+        console.log("ran this ", id)
+        setChats((prevChats) => prevChats.filter(chat => !(chat.id === id && chat.isTemporary)));
+    }
     const sendMessage = () => {
         if (!currentTextingUser) {
             console.log("Aboorted")
@@ -231,7 +213,7 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
                                 } : msg
                             )
                         })
-                        updateOutgoingMessage(currentTextingUser.id, messageObject.content, ack.sentAt);
+                        updateOutgoingMessage(currentTextingUser.id, messageObject?.content || messageObject?.attachments[0]?.type, ack.sentAt);
                     } else {
                         setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempId))
                         console.error("Failed to send file message");
@@ -264,59 +246,6 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
         }
     }
     // TODO: mark message read has some error in it
-    const markMessageAsRead = useCallback((messageIds, chatId) => {
-        socket?.emit('messages_read', messageIds, chatId);
-    }, [socket]);
-
-    const debouncedMarkMessageAsRead = useDebounce(markMessageAsRead, 10);
-
-
-    const handleScroll = useCallback(() => {
-        if (!chatAreaRef.current) return;
-
-        const { scrollTop, scrollHeight, clientHeight } = chatAreaRef.current;
-        const isAtBottom = scrollHeight - scrollTop - clientHeight <= 12;
-
-        setIsUserScrolling(!isAtBottom);
-        setShowScrollToLatest(!isAtBottom);
-
-        const messageElements = chatAreaRef.current.querySelectorAll('.message');
-        const messageToRead = [];
-        const viewportTop = chatAreaRef.current.getBoundingClientRect().top;
-        const viewportBottom = viewportTop + clientHeight;
-
-        messageElements.forEach((element) => {
-            const rect = element.getBoundingClientRect();
-            const messageId = element.dataset.messageId;
-            const messageRef = messageRefs.current[messageId];
-
-            // Check if message is visible in viewport and needs to be marked as read
-            if (rect.top >= viewportTop &&
-                rect.bottom <= viewportBottom &&
-                messageRef &&
-                messageRef.status !== 'READ' &&
-                messageRef.senderId !== loggedUser?.id
-            ) {
-                messageToRead.push(messageId);
-                messageRefs.current[messageId].status = "READ";
-            }
-        });
-
-        if (messageToRead.length > 0) {
-            debouncedMarkMessageAsRead(messageToRead, currentTextingUser?.id);
-        }
-    }, [debouncedMarkMessageAsRead, loggedUser?.id, currentTextingUser?.id]);
-
-    const debounceScroll = useDebounce(handleScroll, 60);
-    
-    useEffect(() => {
-        const chatArea = chatAreaRef.current;
-        if (chatArea) {
-            chatArea.addEventListener('scroll', debounceScroll);
-            return () => chatArea.removeEventListener('scroll', debounceScroll);
-        }
-    }, [debounceScroll]);
-
 
     // const handleScroll = useCallback(() => {
     //     setIsUserScrolling(true);
@@ -354,26 +283,12 @@ const ChatInterfaceHandler = ({ socket, loggedUser, children }) => {
     // }, [debouncedMarkMessageAsRead, loggedUser.id, currentTextingUser.id]);
 
 
-    useEffect(() => {
-        if (!isUserScrolling && messages.length > 0) {
-            const chatArea = chatAreaRef.current;
-            if (!chatArea) return;
-
-            const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight <= 12;
-
-            if (isAtBottom) {
-                scrollToLatestMessage();
-            } else {
-                scrollToFirstUnreadMessage();
-            }
-        }
-    }, [messages, isUserScrolling, scrollToLatestMessage, scrollToFirstUnreadMessage]);
 
 
     return (
         <React.Fragment>
             {React.Children.map(children, child =>
-                React.cloneElement(child, { socket, fetchMessages, handleTyping, scrollToFirstUnreadMessage, sendFileMessage, sendMessage, scrollToLatestMessage, chatAreaRef, messagesEndRef, messageRefs, showScrollToLatest, hasMore, isSending, typing, attachment, setAttachment, messages, setMessages, message, setMessage })
+                React.cloneElement(child, { socket, loggedUser, fetchMessages, handleTyping, removeTemporaryUserOnEscape, sendFileMessage, sendMessage, messageRefs, hasMore, isSending, typing, attachment, setAttachment, messages, setMessages, message, setMessage })
             )}
         </React.Fragment>
     )

@@ -20,7 +20,9 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
 
   useEffect(() => {
     const tourStatus = window.localStorage.getItem('dashboardTourTaken');
-    if (!tourStatus && !isConnected) {
+    const isScreenLarge = window.innerWidth >= 768;
+
+    if (!tourStatus && !isConnected && isScreenLarge) {
       const driverObj = driver({
         showProgress: true,
         steps: [
@@ -75,7 +77,7 @@ const Dashboard = ({ socket, loggedUser, fetchChats, hasMoreChats }) => {
       {isConnected === 'inital-connect' &&
         <InitalLoader content="Please wait web is loading." />
       }
-      <div className="absolute z-50 bg-themeGrey top-0 w-full h-full flex flex-col justify-center items-center md:hidden">
+      <div className="absolute z-50 bg-gray-100 top-0 w-full h-full flex flex-col justify-center items-center md:hidden">
         <Logo />
         <span className="font-mono text-lg text-wrap w-3/5 text-center">Hey please switch to desktop mode. We don't want to spoil your experience Hehe😅</span>
         <Link

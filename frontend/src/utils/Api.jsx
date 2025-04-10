@@ -5,7 +5,7 @@ let instance;
 
 const initalizeApi = () => {
     if (!navigator.onLine) {
-        throw new Error("Broswer not connectede to internet.");
+        alert("Browser not connected to internet.");
     }
     if (!instance) {
         instance = axios.create({

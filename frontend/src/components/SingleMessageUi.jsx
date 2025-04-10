@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import ProgressiveImage from "./ProgressiveImage";
 import { useSetRecoilState } from 'recoil';
 import { viewImageAtom } from '../states/atoms';
@@ -22,21 +22,19 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div className={`flex flex-col w-full sm:w-10/12 md:w-8/12 lg:w-6/12 px-1 py-1 rounded-md shadow-md ${
-        isUser 
-          ? "bg-[#ee6145] bg-opacity-90 text-white" 
-          : "bg-gray-200 text-black"
-      }`}>
-        <div className={`p-2 rounded-md ${
-          isUser 
-            ? "bg-[#ee6145] bg-opacity-70" 
-            : "bg-white"
+      <div className={`flex flex-col w-full sm:w-10/12 md:w-8/12 lg:w-6/12 px-1 py-1 rounded-md shadow-md ${isUser
+        ? "bg-[#ee6145] bg-opacity-90 text-white"
+        : "bg-gray-200 text-black"
         }`}>
-          <p className={`text-xs font-bold tracking-wide ${isUser ? "text-white/85":"text-black/85"}`}>{messageSentBy.length > 20 ? messageSentBy.substring(0, 20) : messageSentBy}</p>
+        <div className={`p-2 rounded-md ${isUser
+          ? "bg-[#ee6145] bg-opacity-70"
+          : "bg-white"
+          }`}>
+          <p className={`text-xs font-bold tracking-wide ${isUser ? "text-white/85" : "text-black/85"}`}>{messageSentBy.length > 20 ? messageSentBy.substring(0, 20) : messageSentBy}</p>
 
-          {message.attachments?.length > 0 && (
-            <div className={`grid gap-2 ${getGridClass(message.attachments.length)} aspect-ratio aspect-auto h-48 sm:h-56 md:h-64 lg:h-72 w-full `}>
-              {message.attachments.map((attachment, index) => {
+          {message?.attachments?.length > 0 && (
+            <div className={`grid gap-2 ${getGridClass(message?.attachments?.length)} aspect-ratio aspect-auto h-48 sm:h-56 md:h-64 lg:h-72 w-full overflow-hidden relative`}>
+              {message?.attachments?.map((attachment, index) => {
                 if (attachment.fileType.includes("image")) {
                   return (
                     <ProgressiveImage key={attachment.id} src={attachment.fileUrl} placeholder="https://assets-v2.lottiefiles.com/a/04b5804a-1161-11ee-b72d-2fca51545fab/sWU9zH0HSi.gif">
@@ -55,7 +53,7 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
                     <video
                       key={index}
                       controls
-                      className="rounded-md h-full w-full object-cover max-w-full max-h-full"
+                      className="rounded-md h-full w-full object-contain max-w-full max-h-full"
                       src={attachment.fileUrl}
                     >
                       Your browser does not support the video tag.
@@ -96,4 +94,4 @@ const SingleMessageUi = ({ message, isUser, messageSentBy }) => {
   );
 }
 
-export default SingleMessageUi;
+export default React.memo(SingleMessageUi);

@@ -1,7 +1,7 @@
 import { io } from "socket.io-client"
 import { activeChatAtom, authenticatedAtom, chatsAtom, disconnectSocketAtom, messagesAtom, isUserConnectedToInternetAtom, globalLoadingAtom, isConnectedAtom } from "../states/atoms";
 import { useNavigate } from "react-router-dom";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import React, { useCallback, useRef, useEffect, useState } from "react";
 import initalizeApi from "./Api";
 import useLoggedUser from "../Hooks/useLoggedUser";
@@ -11,7 +11,6 @@ const SocketWrapper = ({ children }) => {
   const api = initalizeApi();
   const url = import.meta.env.VITE_SERVER_URL;
   const [chats, setChats] = useRecoilState(chatsAtom);
-  const setMessages = useSetRecoilState(messagesAtom);
   const [currentTextingUser, setCurrentTextingUser] = useRecoilState(activeChatAtom);
   const setAuthenticated = useSetRecoilState(authenticatedAtom);
   const [disconnectSocket, setDisconnectSocket] = useRecoilState(disconnectSocketAtom);
@@ -39,8 +38,6 @@ const SocketWrapper = ({ children }) => {
           setHasMoreChats(true);
         }
         setChats(allChats);
-      } else {
-        console.log(resp.data.message);
       }
     } catch (error) {
       console.error("Error fetching messages:", error.message);
@@ -79,7 +76,7 @@ const SocketWrapper = ({ children }) => {
 
   useEffect(() => {
     if (socketRef.current && isConnected === "connected") {
-      const initialLoadingType = "inital-connect"; 
+      const initialLoadingType = "inital-connect";
       setIsConnected(initialLoadingType);
       fetchChats();
       setIsConnected("");
@@ -96,17 +93,52 @@ const SocketWrapper = ({ children }) => {
     }
   }, [disconnectSocket]);
 
-  const handleOnlineChats = (onlineChats) => {
+  const handleOnlineChats = useRecoilCallback(({ snapshot, set }) => async (onlineChats) => {
     onlineChatsRef.current = onlineChats;
-    // Update currentTextingUser's online status if needed
-    if (currentTextingUser) {
-      const isCurrentUserOnline = onlineChats.includes(currentTextingUser.otherUserId);
-      setCurrentTextingUser(prev => ({
+    const currentUser = await snapshot?.getPromise(activeChatAtom);
+    if (currentUser) {
+      const isCurrentUserOnline = onlineChats.includes(currentUser.otherUserId);
+      set(chatsAtom, (prevChats) =>
+        prevChats.map(chat => chat?.otherUserId === currentUser?.otherUserId ? { ...chat, isOnline: isCurrentUserOnline } : chat)
+      )
+      set(activeChatAtom, prev => ({
         ...prev,
         isOnline: isCurrentUserOnline
       }));
     }
-  };
+  })
+
+  const updateMessages = useRecoilCallback(({ snapshot, set }) => async (newMessage) => {
+    const currentUser = await snapshot?.getPromise(activeChatAtom);
+
+    if (String(currentUser?.id) === String(newMessage.chatId)) {
+      set(messagesAtom, (oldMsgs) => [...oldMsgs, newMessage]);
+    } else {
+      try {
+        notificationSound();
+      } catch (error) {
+        console.error("Error playing notification sound:", error);
+      }
+
+    }
+
+    set(chatsAtom, (prevChats) =>
+      prevChats.map((chat) =>
+        chat.id === newMessage.chatId
+          ? {
+            ...chat,
+            lastMessage: newMessage.content,
+            lastMessageAt: newMessage.sentAt,
+            unreadCount:
+              chat.id === currentUser?.id
+                ? chat.unreadCount
+                : (chat.unreadCount || 0) + 1,
+          }
+          : chat
+      )
+    );
+  });
+
 
   useEffect(() => {
     if (socketRef.current && onlineChatsRef.current.length > 0 && chats.length > 0) {
@@ -125,20 +157,47 @@ const SocketWrapper = ({ children }) => {
     }
   }, [socketRef.current, onlineChatsRef.current])
 
-  const handleUserStatus = (userId, isOnline) => {
-    setChats(prev => (
-      prev.map(chat => chat.otherUserId === userId ? { ...chat, isOnline } : chat)
+  const handleUserStatus = useRecoilCallback(({ snapshot, set }) => async (userId, isOnline) => {
+    const currentUser = await snapshot?.getPromise(activeChatAtom);
+    set(chatsAtom, (prev) => (
+      prev?.map(chat => chat.otherUserId === userId ? { ...chat, isOnline } : chat)
     ));
 
-    // Update currentTextingUser's online status if it matches
-    if (currentTextingUser?.otherUserId === userId) {
-      setCurrentTextingUser(prev => ({
+    if (currentUser?.otherUserId === userId) {
+      set(activeChatAtom, prev => ({
         ...prev,
         isOnline
       }));
     }
-  }
+  })
 
+  const updateChatidOfTemporaryChat = useRecoilCallback(({ snapshot, set }) => async (chatId) => {
+    const currentUser = await snapshot?.getPromise(activeChatAtom);
+    set(chatsAtom, (prev) => (
+      prev?.map(chat => chat.otherUserId === currentUser?.otherUserId ? { ...chat, id: chatId, isTemporary: false } : chat)
+    ))
+    if (currentUser?.isTemporary) {
+      set(activeChatAtom, prev => ({
+        ...prev,
+        id: chatId,
+        isTemporary: false
+      }));
+
+    }
+  })
+
+  const updateUnreadCount = useRecoilCallback(({ snapshot, set }) => async (details) => {
+    const currentUser = await snapshot?.getPromise(activeChatAtom);
+    if (currentUser?.id === details.chatId) {
+      set(currentTextingUser, prev => ({
+        ...prev,
+        unreadCount: details.unreadCount
+      }));
+    }
+    set(activeChatAtom, (prev) => {
+      prev.map(chat => chat.id === details.chatId ? { ...chat, unreadCount: details.unreadCount } : chat)
+    })
+  })
 
   useEffect(() => {
     if (!socketRef.current) return;
@@ -151,79 +210,25 @@ const SocketWrapper = ({ children }) => {
         console.log("Error occured while connecting to socket server, ", error.message)
       }
     })
-    socketRef.current?.on("created-chatId", (chatId) => {
-      // First update chats
-      setChats(prevChats =>
-        prevChats.map(chat =>
-          chat.isTemporary && chat.otherUserId === currentTextingUser?.otherUserId
-            ? { ...chat, id: chatId, isTemporary: false }
-            : chat
-        )
-      );
 
-      // Then update current texting user separately
-      if (currentTextingUser?.isTemporary) {
-        setCurrentTextingUser(prev => ({
-          ...prev,
-          id: chatId,
-          isTemporary: false
-        }));
-      }
-    })
-
+    socketRef.current?.on("created-chatId", updateChatidOfTemporaryChat)
     socketRef.current?.on("online_contacts", (onlineChats) => handleOnlineChats(onlineChats))
     socketRef.current?.on("user_online", (userId) => handleUserStatus(userId, true))
     socketRef.current?.on("user_offline", (userId) => handleUserStatus(userId, false))
-    socketRef.current?.on("receive_message", (newMessage) => {
-      console.log("in recieve_messagee")
-      setChats((prevChats) =>
-        prevChats?.map((chat) =>
-          chat.id === newMessage.chatId
-            ? {
-              ...chat,
-              lastMessage: newMessage.content,
-              lastMessageAt: newMessage.sentAt,
-              unreadCount: chat.id === currentTextingUser?.id ? 0 : (chat.unreadCount || 0) + 1,
-            }
-            : chat
-        )
-      );
-      if (currentTextingUser?.id === newMessage?.chatId) {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-      } else {
-        notificationSound();
-      }
-    });
+    socketRef.current?.on("receive_message", updateMessages)
 
-    socketRef.current?.on("update_unread_count", (details) => {
-      if (currentTextingUser?.id === details.chatId) {
-        // Update currentTextingUser first
-        setCurrentTextingUser(prev => ({
-          ...prev,
-          unreadCount: details.unreadCount
-        }));
 
-        // Then update chats separately
-
-        setChats(prevChats =>
-          prevChats.map(chat =>
-            chat.id === details.chatId
-              ? { ...chat, unreadCount: details.unreadCount }
-              : chat
-          )
-        );
-      }
-    })
+    socketRef.current?.on("update_unread_count", updateUnreadCount)
 
     return () => {
       if (socketRef.current) {
         socketRef.current?.off("error")
-        socketRef.current?.off("created-chatId")
-        socketRef.current?.off("online_contacts")
+        socketRef.current?.off("created-chatId", updateChatidOfTemporaryChat)
+        socketRef.current?.off("online_contacts", handleOnlineChats)
         socketRef.current?.off("user_online", handleUserStatus)
         socketRef.current?.off("user_offline", handleUserStatus)
-        socketRef.current?.off("receive_message")
-        socketRef.current?.off("update_unread_count")
+        socketRef.current?.off("receive_message", updateMessages)
+        socketRef.current?.off("update_unread_count", updateUnreadCount)
       }
     }
   }, [ConnectToServer]);

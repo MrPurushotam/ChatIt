@@ -56,7 +56,7 @@ export const VerifiedRoute = () => {
   }
   return (
     <>
-      {user?.isVerified ? <Outlet /> : <Navigate to={`/verify/${user.email}`} />}
+      {user?.isVerified ? <Outlet /> : <Navigate to={`/verify/${user?.email}`} />}
     </>
   )
 }

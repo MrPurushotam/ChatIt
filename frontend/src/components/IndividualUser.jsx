@@ -29,7 +29,7 @@ const IndividualUser = ({ chatDetail, onClick, loggedUser, isActive = true }) =>
 
       <div className="flex flex-col flex-grow min-w-0">
         <div className='flex flex-row gap-1 items-center mb-0.5'>
-          <h2 className="text-base sm:text-lg font-bold truncate">{chatDetail?.otherUserName}</h2>
+          <h2 className="text-base sm:text-lg font-bold truncate">{chatDetail?.otherUserDisplayName}</h2>
           <span className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0`} style={{ background: `${chatDetail?.isOnline ? "#22c55e" : "#9ca3af"}` }}></span>
           <h3 className="text-xs sm:text-sm text-gray-500 font-medium ml-auto flex-shrink-0">{date}</h3>
         </div>

@@ -1,11 +1,32 @@
 import { useLocation } from "react-router-dom"
 import Footer from "../components/Footer"
 import Navbar from "../components/navbar"
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const BasicLayout = ({ children }) => {
     const { pathname, hash } = useLocation();
     const NAVBAR_HEIGHT = 64;
+    const wakeupReqCounter = useRef(0);
+    const MAX_WAKEUP_REQUESTS = 5;
+    const backendResponded = useRef(false);
+
+    useEffect(() => {
+        const wakeupBackend = async () => {
+            if (wakeupReqCounter.current >= MAX_WAKEUP_REQUESTS || backendResponded.current) return;
+            wakeupReqCounter.current += 1;
+            try {
+                if(!import.meta.env.VITE_SERVER_URL) return;
+                const response = await fetch(import.meta.env.VITE_SERVER_URL);
+                if (response.ok) {
+                    backendResponded.current = true;
+                }
+            } catch {
+                console.log("Backend wakeup request failed (ignored).");
+            }
+        };
+
+        wakeupBackend();
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {

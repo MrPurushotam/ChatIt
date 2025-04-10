@@ -20,6 +20,11 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
     const dropZoneRef = useRef(null);
 
     const addNewChatToSidebar = (data) => {
+        const existingChat = chats.find(chat => chat.otherUserId === data.otherUserId);
+        if (existingChat) {
+            return existingChat.id;
+        }
+
         const tempId = `temp-${Date.now()}`;
         const newChat = {
             ...data,
@@ -28,8 +33,8 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
             lastMessageAt: new Date().toISOString(),
             unreadCount: 0,
             isTemporary: true
-        }
-        setChats((chats) => ([newChat, ...chats]))
+        };
+        setChats((chats) => ([newChat, ...chats]));
         return tempId;
     }
 
@@ -51,10 +56,9 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
         const selectedChat = chats.find(chat => chat.id === id);
         setCurrentTextingUser(selectedChat);
     }
-    // FIXME: Test the code if it works?
     return (
         <>
-            <div className="h-full flex flex-col overflow-hidden">
+            <div className="h-full !flex flex-col overflow-hidden">
                 {selectedDropdownItem && <SettingsInterface />}
                 {!selectedDropdownItem &&
                     <>
@@ -125,39 +129,3 @@ const Sidebar = ({ hasMoreChats, fetchChats }) => {
 }
 
 export default Sidebar
-
-
-// <InfiniteScroll
-//                         className="space-y-2"
-//                         pageStart={messages.length}
-//                         loadMore={fetchMessages}
-//                         hasMore={hasMore}
-//                         loader={<Loader className=" flex justify-center overflow-hidden" />}
-//                         useWindow={false}
-//                         isReverse={true}
-//                         getScrollParent={() => dropZoneRef.current}
-//                     >
-
-//                         {
-//                             messages?.map((msg) => {
-//                                 return (
-//                                     <div
-//                                         key={msg.id}
-//                                         className="message"
-//                                         data-message-id={msg.id}
-//                                         ref={el => {
-//                                             if (el) {
-//                                                 messageRefs.current[msg.id] = { ...msg, element: el };
-//                                             }
-//                                         }}
-//                                     >
-//                                         <SingleMessageUi
-//                                             message={msg}
-//                                             isUser={msg.senderId !== currentTextingUser.otherUserId}
-//                                             messageSentBy={`${msg.senderId === currentTextingUser.otherUserId ? currentTextingUser.otherUserName : "You"}`}
-//                                         />
-//                                     </div>
-//                                 )
-//                             })
-//                         }
-//                     </InfiniteScroll>

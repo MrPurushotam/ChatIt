@@ -49,7 +49,6 @@ const Searchbar = ({ createNewChat }) => {
                 id: tempId,
                 isTemporary: true,
             }
-            console.log(tempUser);
             setCurrentTextingUser(tempUser);
         } else {
             setCurrentTextingUser(user);
@@ -126,7 +125,7 @@ const Searchbar = ({ createNewChat }) => {
                                             }
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="font-semibold text-black text-sm sm:text-base">{user.otherUserName}</div>
+                                            <div className="font-semibold text-black text-sm sm:text-base">{user.otherUserDisplayName}</div>
                                             {user?.hasChat &&
                                                 <div className="flex justify-between items-center w-full text-xs sm:text-sm">
                                                     <div className="text-gray-700 flex items-center overflow-hidden flex-1 mr-2">
