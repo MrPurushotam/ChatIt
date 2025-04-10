@@ -137,16 +137,16 @@ const UpdateProfileOnce = () => {
                 {/* Buttons */}
                 <div className="gap-4 flex flex-col sm:flex-row items-center mt-6 w-full">
                     <button
+                        className="bg-sky-600 hover:bg-sky-800 text-white font-bold tracking-wider text-lg px-6 py-3 rounded-md shadow-md transition-all duration-300 w-full sm:w-auto"
+                        onClick={handleSkip}
+                    >
+                        Skip
+                    </button>
+                    <button
                         className="bg-[#ee6145] hover:bg-[#d14c37] text-white font-bold tracking-wider text-lg px-6 py-3 rounded-md shadow-md transition-all duration-300 w-full sm:w-auto"
                         onClick={handleUpdate}
                     >
                         Update
-                    </button>
-                    <button
-                        className="bg-sky-500 hover:bg-sky-600 text-white font-bold tracking-wider text-lg px-6 py-3 rounded-md shadow-md transition-all duration-300 w-full sm:w-auto"
-                        onClick={handleSkip}
-                    >
-                        Skip
                     </button>
                 </div>
             </div>
